@@ -1645,9 +1645,9 @@ function showMobileView(view) {
         document.getElementById("mobile-signal").classList.add("active");
     }
 
-    if (view === "phone") {
-        
-        let body = document.getElementById("phone-body");
+   if (view === "phone") {
+    document.body.classList.add("phone-active");  // ← THIS WAS MISSING
+    let body = document.getElementById("phone-body");
         body.appendChild(document.getElementById("phone-section"));
         body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
         document.getElementById("mobile-phone").classList.add("active");
