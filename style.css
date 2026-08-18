@@ -1312,19 +1312,15 @@ body {
         height: 100vh;
     }
 
-    /* input position fix */
-    #input-area {
-        padding-bottom: 23px;
-        margin-bottom: env(safe-area-inset-bottom, 8px);
-    }
-       /* --- INPUT AREA FIXES --- */
-    #input-area {
-        padding-bottom: env(safe-area-inset-bottom, 16px);
-        gap: 6px;
+    /* --- INPUT AREA FIXES --- */
+    #chat-area {
+        padding-bottom: 10px;  /* was: 10 (missing px) */
     }
 
-    #chat-area {
-        padding-bottom: 0;
+    #input-area {
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+        margin-bottom: 8px;
+        gap: 6px;
     }
 
     #userInput {
@@ -1341,7 +1337,6 @@ body {
         padding: 10px 16px;
         font-size: 9px;
     }
-
     /* --- FREQ INPUT FIX --- */
     #freq-input {
         font-size: 12px !important;
@@ -1356,6 +1351,17 @@ body {
         margin-top: 10px;
     }
 
+    /* --- FREQ TIMELINE MOBILE --- */
+    #freq-timeline {
+        height: 200px;  /* was 350px — way too tall for phone */
+    }
+
+    /* --- MUSIC PLAYER SPACING --- */
+    #music-section {
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px solid #333;
+}
     /* --- PHONE: FULL SCREEN ON MOBILE --- */
     .phone-device {
         width: 100%;
