@@ -25,9 +25,9 @@
             <div class="sidebar-section" id="chats-section">
             <h2 onclick="toggleChatList()">💬 Chats <span id="chat-fold-arrow">▼</span></h2>
             <div id="chat-list-container">
-                <div id="chat-list"></div>
-                <button id="new-chat-btn" onclick="createNewChat()">+ new chat</button>
-            </div>
+            <button id="new-chat-btn" onclick="createNewChat()">+ new chat</button>
+            <div id="chat-list"></div>
+        </div>
         </div>
 
           <div class="sidebar-section" id="freq-section">
@@ -230,12 +230,13 @@
     </div>
 
 <!-- SETTINGS MODAL -->
+<div id="settings-overlay">
 <div id="settings-panel">
     <div class="settings-header">
         <h2>⚙️ Settings</h2>
         <button class="close-x" id="settings-close">✕</button>
     </div>
-        <h2>⚙️ Settings</h2><label>Presets</label>
+    <label>Presets</label>
         <div class="preset-row">
             <select id="presetSelect">
                 <option value="">-- no preset --</option>
