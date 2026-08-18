@@ -1287,6 +1287,36 @@ body {
    MOBILE RESPONSIVE
    ============================ */
 @media (max-width: 768px) {
+     /* hide fake phone status bar on mobile */
+    .phone-status { display: none; }
+
+    /* hide topbar when phone view is open */
+    body.phone-active #topbar { display: none; }
+
+    /* phone view header: minimal, just ✕ */
+    body.phone-active #mobile-phone .mobile-view-header {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 20;
+        border: none;
+        background: none;
+        padding: 4px;
+    }
+
+    body.phone-active #mobile-phone .mobile-view-header span {
+        display: none;
+    }
+
+    body.phone-active #mobile-phone {
+        height: 100vh;
+    }
+
+    /* input position fix */
+    #input-area {
+        padding-bottom: 23px;
+        margin-bottom: env(safe-area-inset-bottom, 8px);
+    }
        /* --- INPUT AREA FIXES --- */
     #input-area {
         padding-bottom: env(safe-area-inset-bottom, 10px);
