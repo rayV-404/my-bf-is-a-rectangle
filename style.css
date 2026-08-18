@@ -1287,6 +1287,89 @@ body {
    MOBILE RESPONSIVE
    ============================ */
 @media (max-width: 768px) {
+       /* --- INPUT AREA FIXES --- */
+    #input-area {
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+        gap: 6px;
+    }
+
+    #chat-area {
+        padding-bottom: 0;
+    }
+
+    #userInput {
+        padding: 10px;
+        font-size: 12px !important;
+        min-height: 40px;
+    }
+
+    #userInput::placeholder {
+        font-size: 10px;
+    }
+
+    #sendBtn {
+        padding: 10px 16px;
+        font-size: 9px;
+    }
+
+    /* --- FREQ INPUT FIX --- */
+    #freq-input {
+        font-size: 12px !important;
+    }
+
+    #freq-input::placeholder {
+        font-size: 10px;
+    }
+
+    /* --- MUSIC PLAYER SPACING --- */
+    #music-section {
+        margin-top: 10px;
+    }
+
+    /* --- PHONE: FULL SCREEN ON MOBILE --- */
+    .phone-device {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        margin: 0;
+    }
+
+    .phone-notch { display: none; }
+
+    .phone-screen {
+        min-height: calc(100vh - 140px);
+    }
+
+    .phone-status {
+        padding: 8px 16px;
+    }
+
+    .lock-time {
+        font-size: 64px;
+    }
+
+    .lock-notification {
+        margin: 16px;
+    }
+
+    .home-apps {
+        gap: 20px;
+        padding: 0 24px;
+    }
+
+    .app-icon-img {
+        width: 52px;
+        height: 52px;
+        font-size: 24px;
+    }
+
+    .phone-home-bar { display: none; }
+
+    .app-body {
+        max-height: calc(100vh - 200px);
+    }
       #new-chat-btn {
         padding: 14px;
         font-size: 10px;
