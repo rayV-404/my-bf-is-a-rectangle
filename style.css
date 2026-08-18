@@ -1319,7 +1319,7 @@ body {
     }
        /* --- INPUT AREA FIXES --- */
     #input-area {
-        padding-bottom: env(safe-area-inset-bottom, 10px);
+        padding-bottom: env(safe-area-inset-bottom, 16px);
         gap: 6px;
     }
 
