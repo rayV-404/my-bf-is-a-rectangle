@@ -586,7 +586,7 @@ body {
 .settings-row > div { flex: 1; }
 
 #settings-save { margin-top: 20px; background: #7c3aed; color: #fff; border: none; padding: 12px 20px; cursor: pointer; font-family: 'Press Start 2P', monospace; font-size: 9px; width: 100%; }
-#settings-close { margin-top: 8px; background: none; color: #666; border: 1px solid #333; padding: 10px 20px; cursor: pointer; font-family: 'Press Start 2P', monospace; font-size: 9px; width: 100%; }
+
 
 .freq-reply-row {
     display: flex;
@@ -1285,6 +1285,42 @@ body {
    MOBILE RESPONSIVE
    ============================ */
 @media (max-width: 768px) {
+      #new-chat-btn {
+        padding: 14px;
+        font-size: 10px;
+        background: linear-gradient(135deg, #7c3aed, #a855f7);
+        border: none;
+        color: #fff;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    #chats-section {
+        flex: 1;
+        overflow-y: auto;
+        border: none;
+    }
+
+    #chats-section h2 { display: none; }
+    #chat-list-container { display: block !important; }
+    #chat-list { max-height: none; }
+
+    .chat-date-header {
+        font-size: 8px;
+        color: #555;
+        padding: 8px 4px 4px;
+    }
+
+    .chat-list-item {
+        border-bottom: 1px solid #1a1a1a;
+        border-radius: 6px;
+        margin-bottom: 2px;
+    }
+
+    .chat-list-item.active {
+        background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.15));
+        border-left: 3px solid #7c3aed;
+    }
 
     /* sidebar becomes drawer */
     #sidebar {
@@ -1340,4 +1376,70 @@ body {
     #chat-area.hidden {
         display: none;
     }
+     /* hide topbar right buttons on mobile */
+    #topbar-btns { display: none; }
+
+    /* prevent iOS zoom on input focus */
+    #userInput,
+    #memory-input,
+    .freq-reply-input,
+    #freq-input,
+    .phone-answer-row input,
+    #phone-answer {
+        font-size: 16px !important;
+    }
+
+    /* bigger phone on mobile */
+    .phone-device {
+        width: 100%;
+        max-width: 340px;
+    }
+
+    /* hide section h2 inside mobile views — header already shows title */
+    .mobile-view-body .sidebar-section > h2 {
+        display: none;
+    }
+
+    /* tighter spacing in mobile views */
+    .mobile-view-body {
+        padding: 5px;
+    }
+}
+/* --- CLOSE BUTTON (✕) --- */
+.close-x {
+    background: none !important;
+    border: none !important;
+    color: #555;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+    width: auto !important;
+    margin: 0;
+    font-family: inherit;
+}
+
+.close-x:hover { color: #fff; }
+
+/* --- SETTINGS HEADER --- */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.settings-header h2 { margin: 0; }
+
+/* --- MOBILE VIEW HEADER TWEAK --- */
+.mobile-view-header .close-x {
+    margin-right: 8px;
+    border: none;
+}
+/* --- CHAT DATE HEADERS --- */
+.chat-date-header {
+    font-size: 7px;
+    color: #555;
+    padding: 10px 4px 4px;
+    font-family: 'Press Start 2P', monospace;
 }
