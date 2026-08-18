@@ -292,7 +292,8 @@ function createNewChat() {
     let newChat = {
         id: generateId(),
         name: "Chat " + (allChats.length + 1),
-        history: []
+        history: [],
+        created: new Date().toISOString()
     };
     allChats.push(newChat);
     switchChat(newChat.id);
@@ -306,6 +307,10 @@ function switchChat(id) {
     saveAllChats();
     renderChatList();
     renderChatbox();
+
+    if (isMobile()) {
+        showMobileView('chat');
+    }
 }
 
 function renameChat(id, e) {
@@ -353,18 +358,62 @@ function renderChatList() {
     if (!list) return;
     list.innerHTML = "";
 
+    // group chats by date
+    let groups = {};
     allChats.forEach(chat => {
-        let item = document.createElement("div");
-        item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
-        item.onclick = () => switchChat(chat.id);
-        item.innerHTML = `
-            <span class="chat-name">${escapeHtml(chat.name)}</span>
-            <span class="chat-item-actions">
-                <span onclick="renameChat('${chat.id}', event)">✏️</span>
-                <span onclick="deleteChat('${chat.id}', event)">🗑️</span>
-            </span>
-        `;
-        list.appendChild(item);
+        let dateKey;
+        if (chat.created) {
+            let d = new Date(chat.created);
+            let today = new Date();
+            let yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (d.toDateString() === today.toDateString()) {
+                dateKey = "today";
+            } else if (d.toDateString() === yesterday.toDateString()) {
+                dateKey = "yesterday";
+            } else {
+                let m = d.getMonth() + 1;
+                let day = d.getDate();
+                dateKey = m + "月" + day + "日";
+            }
+        } else {
+            dateKey = "older";
+        }
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(chat);
+    });
+
+    // render groups
+    let order = Object.keys(groups);
+    // put "today" first, "yesterday" second
+    order.sort((a, b) => {
+        if (a === "today") return -1;
+        if (b === "today") return 1;
+        if (a === "yesterday") return -1;
+        if (b === "yesterday") return 1;
+        return 0;
+    });
+
+    order.forEach(dateKey => {
+        let header = document.createElement("div");
+        header.className = "chat-date-header";
+        header.textContent = dateKey;
+        list.appendChild(header);
+
+        groups[dateKey].forEach(chat => {
+            let item = document.createElement("div");
+            item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
+            item.onclick = () => switchChat(chat.id);
+            item.innerHTML = `
+                <span class="chat-name">${escapeHtml(chat.name)}</span>
+                <span class="chat-item-actions">
+                    <span onclick="renameChat('${chat.id}', event)">✏️</span>
+                    <span onclick="deleteChat('${chat.id}', event)">🗑️</span>
+                </span>
+            `;
+            list.appendChild(item);
+        });
     });
 }
 function loadAllChats() {
@@ -1544,6 +1593,21 @@ function isMobile() {
     return window.innerWidth <= 768;
 }
 
+function returnSectionsToSidebar() {
+    let sidebar = document.getElementById("sidebar");
+    let mobileNav = document.getElementById("mobile-nav");
+    ["freq-section", "music-section", "phone-section", "memory-section"].forEach(id => {
+        let el = document.getElementById(id);
+        if (el && el.parentElement !== sidebar) {
+            if (mobileNav) {
+                sidebar.insertBefore(el, mobileNav);
+            } else {
+                sidebar.appendChild(el);
+            }
+        }
+    });
+}
+
 function showMobileView(view) {
     if (!isMobile()) return;
 
@@ -1551,9 +1615,21 @@ function showMobileView(view) {
     document.getElementById("sidebar").classList.remove("open");
     document.getElementById("sidebar-overlay").style.display = "none";
 
+    // return any moved sections first
+    returnSectionsToSidebar();
+
     // hide everything
     document.getElementById("chat-area").classList.add("hidden");
-    document.querySelectorAll(".mobile-view").forEach(v => v.classList.remove("active"));
+    document.querySelectorAll(".mobile-view").forEach(v => {
+        v.classList.remove("active");
+        // clear mobile view bodies
+        let body = v.querySelector(".mobile-view-body");
+        if (body) body.innerHTML = "";
+    });
+
+    // hide/show topbar title
+    let title = document.getElementById("topbar-title");
+    if (title) title.style.display = (view === "chat") ? "" : "none";
 
     if (view === "chat") {
         document.getElementById("chat-area").classList.remove("hidden");
@@ -1562,38 +1638,30 @@ function showMobileView(view) {
 
     if (view === "signal") {
         let body = document.getElementById("signal-body");
-        body.innerHTML = "";
-        body.appendChild(document.getElementById("freq-section").cloneNode(true));
-        body.appendChild(document.getElementById("music-section").cloneNode(true));
-        // make cloned sections visible
+        // move actual elements (not clone — preserves event listeners)
+        body.appendChild(document.getElementById("freq-section"));
+        body.appendChild(document.getElementById("music-section"));
         body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
         document.getElementById("mobile-signal").classList.add("active");
     }
 
     if (view === "phone") {
         let body = document.getElementById("phone-body");
-        body.innerHTML = "";
-        body.appendChild(document.getElementById("phone-section").cloneNode(true));
+        body.appendChild(document.getElementById("phone-section"));
         body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
         document.getElementById("mobile-phone").classList.add("active");
+        // re-init phone time
+        updatePhoneTime();
     }
 
     if (view === "memory") {
         let body = document.getElementById("memory-body");
-        body.innerHTML = `
-            <div id="memory-input-area-mobile">
-                <div class="memory-input-row">
-                    <input type="text" id="memory-input-mobile" placeholder="add a memory...">
-                    <button id="memory-add-btn-mobile" onclick="addMemoryMobile()">+</button>
-                </div>
-            </div>
-            <div id="memory-list-mobile"></div>
-        `;
-        renderMemories();
+        body.appendChild(document.getElementById("memory-section"));
+        body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
         document.getElementById("mobile-memory").classList.add("active");
+        renderMemories();
     }
 }
-
 function addMemoryMobile() {
     let input = document.getElementById("memory-input-mobile");
     let text = input.value.trim();
