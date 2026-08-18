@@ -1356,34 +1356,49 @@ body {
 
 /* --- MOBILE SIGNAL LAYOUT --- */
 
-    #mobile-signal .mobile-view-body {
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-        padding: 5px;
-    }
+    /* --- MOBILE SIGNAL LAYOUT --- */
 
-    #mobile-signal #freq-section {
-    flex: 1;
-    min-height: 0;
+#mobile-signal {
+    height: calc(100vh - 50px);
+    display: none;
+    flex-direction: column;
 }
 
-    /* --- FREQ TIMELINE MOBILE --- */
+#mobile-signal.active {
+    display: flex;
+}
 
-    #freq-timeline {
-    height: auto;
+#mobile-signal .mobile-view-body {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 5px;
+}
+
+/* Frequency occupies the scrolling area */
+#mobile-signal #freq-section {
+    flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
-    /* --- MOBILE MUSIC PLAYER --- */
 
-    #mobile-signal #music-section {
-        flex: 0 0 auto;
-        margin-top: auto;
-        padding: 10px 0;
-        border-top: 1px solid #333;
-    }
+/* Frequency itself scrolls */
+#mobile-signal #freq-timeline {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+}
+
+/* Player stays at bottom of SIGNAL view */
+#mobile-signal #music-section {
+    flex: 0 0 auto;
+    margin-top: 10px;
+    padding: 10px 0;
+    border-top: 1px solid #333;
+}
 
     /* Inside @media (max-width: 768px) */
     .phone-device {
