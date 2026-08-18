@@ -1091,24 +1091,51 @@ Write ONLY the purchase line. Nothing else.`;
 }
 
 function renderPhonePurchases() {
-    let list = document.getElementById("purchases-list");
+    const list = document.getElementById("purchases-list");
     if (!list) return;
+
     list.innerHTML = "";
 
     phonePurchases.forEach((p, i) => {
-        let preview = p.text.split("\n")[0].slice(0, 40) + (p.text.length > 40 ? "..." : "");
-        let div = document.createElement("div");
+        const text = p.text.trim();
+
+        // AI 生成格式：
+        // ITEM NAME — $PRICE
+        const match = text.match(/^(.*?)\s*[—-]\s*(\$[\d,.]+)/);
+
+        let itemName = text;
+        let price = "";
+
+        if (match) {
+            itemName = match[1].trim();
+            price = match[2].trim();
+        }
+
+        const div = document.createElement("div");
         div.className = "phone-entry";
+
         div.innerHTML = `
-            <div class="phone-entry-header">
-                <span class="entry-preview" onclick="togglePhoneEntry(this)">${escapeHtml(preview)}</span>
-                <span class="entry-delete" onclick="deletePhonePurchase(${i})">×</span>
-            </div>
-            <div class="phone-entry-content" style="display:none;">
-                ${escapeHtml(p.text).replace(/\n/g, '<br>')}
-                <div class="entry-time">${p.time}</div>
+            <div class="purchase-card">
+
+                <div class="purchase-icon">
+                    🛍️
+                </div>
+
+                <div class="purchase-info">
+
+                    <div class="purchase-name">
+                        ${escapeHtml(itemName)}
+                    </div>
+
+                    <div class="purchase-price">
+                        ${escapeHtml(price)}
+                    </div>
+
+                </div>
+
             </div>
         `;
+
         list.appendChild(div);
     });
 }
