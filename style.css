@@ -1346,10 +1346,6 @@ body {
         font-size: 10px;
     }
 
-    /* --- MUSIC PLAYER SPACING --- */
-    #music-section {
-        margin-top: 10px;
-    }
     /* Inside @media (max-width: 768px) */
     #sidebar {
         display: flex;
@@ -1358,26 +1354,36 @@ body {
         min-height: calc(100vh - 50px); /* Match main height */
     }
 
-    #music-section {
-        margin-top: auto; /* Push to bottom */
+/* --- MOBILE SIGNAL LAYOUT --- */
+
+    #mobile-signal .mobile-view-body {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        padding: 5px;
+    }
+
+    #mobile-signal #freq-section {
+    flex: 1;
+    min-height: 0;
+}
+
+    /* --- FREQ TIMELINE MOBILE --- */
+
+    #freq-timeline {
+    height: auto;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+    /* --- MOBILE MUSIC PLAYER --- */
+
+    #mobile-signal #music-section {
+        flex: 0 0 auto;
+        margin-top: auto;
         padding: 10px 0;
         border-top: 1px solid #333;
     }
-
-    #freq-section {
-        flex: 1; /* Let freq take remaining space */
-    }
-    /* --- FREQ TIMELINE MOBILE --- */
-    #freq-timeline {
-        height: 200px;  /* was 350px — way too tall for phone */
-    }
-
-    /* --- MUSIC PLAYER SPACING --- */
-    #music-section {
-        margin-top: 20px;
-        padding-top: 10px;
-        border-top: 1px solid #333;
-}
 
     /* Inside @media (max-width: 768px) */
     .phone-device {
