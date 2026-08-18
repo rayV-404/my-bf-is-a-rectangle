@@ -1350,7 +1350,23 @@ body {
     #music-section {
         margin-top: 10px;
     }
+    /* Inside @media (max-width: 768px) */
+    #sidebar {
+        display: flex;
+        flex-direction: column;
+        /* Add this */
+        min-height: calc(100vh - 50px); /* Match main height */
+    }
 
+    #music-section {
+        margin-top: auto; /* Push to bottom */
+        padding: 10px 0;
+        border-top: 1px solid #333;
+    }
+
+    #freq-section {
+        flex: 1; /* Let freq take remaining space */
+    }
     /* --- FREQ TIMELINE MOBILE --- */
     #freq-timeline {
         height: 200px;  /* was 350px — way too tall for phone */
@@ -1362,6 +1378,25 @@ body {
         padding-top: 10px;
         border-top: 1px solid #333;
 }
+
+    /* Inside @media (max-width: 768px) */
+    .phone-device {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        height: calc(100vh - 140px); /* Full height minus headers */
+    }
+
+    .phone-screen {
+        min-height: 100%;
+    }
+
+    .phone-notch {
+        display: none; /* Hide notch on mobile */
+    }
     /* --- PHONE: FULL SCREEN ON MOBILE --- */
     .phone-device {
         width: 100%;
@@ -1563,4 +1598,22 @@ body {
     color: #555;
     padding: 10px 4px 4px;
     font-family: 'Press Start 2P', monospace;
+}
+/* Inside @media (max-width: 768px) */
+.phone-device {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+    height: calc(100vh - 140px); /* Full height minus headers */
+}
+
+.phone-screen {
+    min-height: 100%;
+}
+
+.phone-notch {
+    display: none; /* Hide notch on mobile */
 }
