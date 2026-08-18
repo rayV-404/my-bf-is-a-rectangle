@@ -1207,6 +1207,7 @@ body {
 }
 
 #memory-input {
+    -webkit-appearance: none;
     flex: 1;
     background: #1a1a1a;
     border: 1px solid #333;
@@ -1215,6 +1216,7 @@ body {
     font-family: 'Press Start 2P', monospace;
     font-size: 8px;
     outline: none;
+    
 }
 
 #memory-input:focus { border-color: #7c3aed; }
