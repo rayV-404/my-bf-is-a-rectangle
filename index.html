@@ -10,7 +10,7 @@
     <!-- TOP BAR -->
 <div id="topbar">
     <button id="hamburger-btn" onclick="toggleSidebar()">☰</button>
-    <h1>💀 my-bf-is-a-rectangle 💀</h1>
+    <h1 id="topbar-title">💀 my-bf-is-a-rectangle 💀</h1>
     <div id="topbar-btns">
         <button onclick="openMemoryPanel()">🧠</button>
         <button onclick="openSettings()">⚙️</button>
@@ -42,7 +42,7 @@
             <div id="freq-timeline"></div>
         </div>
          <div class="sidebar-section" id="phone-section">
-    <h2>🔓 Hack John's Phone</h2>
+    <h2>📵 Dead Drop</h2>
 
     <div class="phone-device">
         <div class="phone-notch"></div>
@@ -176,7 +176,6 @@
     <div id="memory-list"></div>
 </div>
 <div id="mobile-nav">
-    <button class="mobile-nav-btn" onclick="showMobileView('chat')">💬 chat</button>
     <button class="mobile-nav-btn" onclick="showMobileView('signal')">📡 signal</button>
     <button class="mobile-nav-btn" onclick="showMobileView('phone')">📵 dead drop</button>
     <button class="mobile-nav-btn" onclick="showMobileView('memory')">🧠 memory</button>
@@ -190,9 +189,9 @@
 <!-- MOBILE: SIGNAL VIEW -->
 <div id="mobile-signal" class="mobile-view">
     <div class="mobile-view-header">
-        <button onclick="showMobileView('chat')">← back</button>
-        <span>📡 signal</span>
-    </div>
+    <button class="close-x" onclick="showMobileView('chat')">✕</button>
+    <span>📡 signal</span>
+</div>
     <div class="mobile-view-body" id="signal-body">
         <!-- frequencies + player will be moved here by JS on mobile -->
     </div>
@@ -200,10 +199,10 @@
 
 <!-- MOBILE: DEAD DROP VIEW -->
 <div id="mobile-phone" class="mobile-view">
-    <div class="mobile-view-header">
-        <button onclick="showMobileView('chat')">← back</button>
-        <span>📵 dead drop</span>
-    </div>
+   <div class="mobile-view-header">
+    <button class="close-x" onclick="showMobileView('chat')">✕</button>
+    <span>📵 dead drop</span>
+</div>
     <div class="mobile-view-body" id="phone-body">
         <!-- phone will be moved here by JS on mobile -->
     </div>
@@ -212,9 +211,9 @@
         <!-- MOBILE: MEMORY VIEW -->
         <div id="mobile-memory" class="mobile-view">
             <div class="mobile-view-header">
-                <button onclick="showMobileView('chat')">← back</button>
-                <span>🧠 memory</span>
-            </div>
+    <button class="close-x" onclick="showMobileView('chat')">✕</button>
+    <span>🧠 memory</span>
+</div>
             <div class="mobile-view-body" id="memory-body">
                 <!-- memory will be moved here by JS on mobile -->
             </div>
@@ -231,8 +230,11 @@
     </div>
 
 <!-- SETTINGS MODAL -->
-<div id="settings-overlay">
-    <div id="settings-panel">
+<div id="settings-panel">
+    <div class="settings-header">
+        <h2>⚙️ Settings</h2>
+        <button class="close-x" id="settings-close">✕</button>
+    </div>
         <h2>⚙️ Settings</h2><label>Presets</label>
         <div class="preset-row">
             <select id="presetSelect">
@@ -269,7 +271,6 @@
     <button class="export-import-btn" onclick="exportData()">📦 export all</button>
     <button class="export-import-btn" id="import-btn">📥 import</button><input type="file" id="importFile" accept=".json" style="display:none;">
 </div>
-        <button id="settings-close">Close</button>
     </div>
 </div>
 
