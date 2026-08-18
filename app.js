@@ -1596,14 +1596,21 @@ function isMobile() {
 function returnSectionsToSidebar() {
     let sidebar = document.getElementById("sidebar");
     let mobileNav = document.getElementById("mobile-nav");
+
     ["freq-section", "music-section", "phone-section", "memory-section"].forEach(id => {
         let el = document.getElementById(id);
+
         if (el && el.parentElement !== sidebar) {
             if (mobileNav) {
                 sidebar.insertBefore(el, mobileNav);
             } else {
                 sidebar.appendChild(el);
             }
+        }
+
+        // Clear mobile inline display override
+        if (el) {
+            el.style.display = "";
         }
     });
 }
