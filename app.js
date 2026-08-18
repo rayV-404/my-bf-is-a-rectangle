@@ -1630,7 +1630,7 @@ function showMobileView(view) {
     // hide/show topbar title
     let title = document.getElementById("topbar-title");
     if (title) title.style.display = (view === "chat") ? "" : "none";
-
+    document.body.classList.remove("phone-active");
     if (view === "chat") {
         document.getElementById("chat-area").classList.remove("hidden");
         return;
@@ -1646,6 +1646,7 @@ function showMobileView(view) {
     }
 
     if (view === "phone") {
+        
         let body = document.getElementById("phone-body");
         body.appendChild(document.getElementById("phone-section"));
         body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
