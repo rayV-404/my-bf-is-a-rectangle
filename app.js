@@ -982,6 +982,21 @@ function tryUnlock() {
     }
 }
 
+function resetPhoneToLockScreen() {
+    const lock = document.getElementById("phone-lock");
+    const home = document.getElementById("phone-home");
+    const notes = document.getElementById("phone-notes-app");
+    const purchases = document.getElementById("phone-purchases-app");
+
+    if (lock) lock.style.display = "flex";
+    if (home) home.style.display = "none";
+    if (notes) notes.style.display = "none";
+    if (purchases) purchases.style.display = "none";
+
+    // 每次重新打开手机时换一个问题
+    loadNewQuestion();
+}
+
 function openPhoneApp(app) {
     document.getElementById("phone-home").style.display = "none";
     if (app === "notes") {
@@ -1680,14 +1695,23 @@ function showMobileView(view) {
     }
 
    if (view === "phone") {
-    document.body.classList.add("phone-active");  // ← THIS WAS MISSING
+    document.body.classList.add("phone-active");
+
     let body = document.getElementById("phone-body");
-        body.appendChild(document.getElementById("phone-section"));
-        body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
-        document.getElementById("mobile-phone").classList.add("active");
-        // re-init phone time
-        updatePhoneTime();
-    }
+
+    body.appendChild(document.getElementById("phone-section"));
+
+    body.querySelectorAll(".sidebar-section").forEach(s => {
+        s.style.display = "block";
+    });
+
+    document.getElementById("mobile-phone").classList.add("active");
+
+    updatePhoneTime();
+
+    // 每次重新进入 Dead Drop，都从锁屏开始
+    resetPhoneToLockScreen();
+}
 
     if (view === "memory") {
         let body = document.getElementById("memory-body");
