@@ -1639,29 +1639,294 @@ body {
     display: none; /* Hide notch on mobile */
 }
 
-/* --- DEAD DROP: FULL SCREEN ON MOBILE --- */
+/* --- DEAD DROP: FULL SCREEN MOBILE VIEW --- */
 
 @media (max-width: 768px) {
+
     body.phone-active #mobile-phone {
-        height: 100vh;
-        min-height: 100vh;
+        position: fixed;
+        inset: 0;
+
+        width: 100vw;
+        height: 100dvh;
+        min-height: 100dvh;
+
+        z-index: 100;
     }
 
     body.phone-active #mobile-phone .mobile-view-body {
-        flex: 1;
+        width: 100%;
+        height: 100%;
         min-height: 0;
+
         padding: 0;
+
         overflow: hidden;
     }
 
+    body.phone-active #mobile-phone #phone-section {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+
+        padding: 0;
+        margin: 0;
+
+        border: none;
+    }
+
+    /* 不要显示网页原来的 Dead Drop 标题 */
+    body.phone-active #mobile-phone #phone-section > h2 {
+        display: none;
+    }
+
+    /* 手机本身占满整个 viewport */
     body.phone-active #mobile-phone .phone-device {
         width: 100%;
         max-width: none;
+
         height: 100%;
         min-height: 0;
+
         margin: 0;
+
         border: none;
         border-radius: 0;
         box-shadow: none;
+    }
+
+    body.phone-active #mobile-phone .phone-screen {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+}
+
+/* --- PURCHASE CARDS --- */
+
+.purchase-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.purchase-icon {
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.18);
+    border-radius: 14px;
+    font-size: 22px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.phone-entry:hover .purchase-icon {
+    border-color: rgba(124, 58, 237, 0.4);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.15);
+}
+
+.purchase-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.purchase-name {
+    color: #ccc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.purchase-price {
+    color: #c084fc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* --- PURCHASE CARDS --- */
+
+/* App screens need an explicit dark bg */
+#phone-purchases-app .app-body {
+    background: #000;
+}
+
+.purchase-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.purchase-icon {
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 14px;
+    font-size: 22px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.phone-entry:hover .purchase-icon {
+    border-color: rgba(124, 58, 237, 0.45);
+    box-shadow: 0 0 14px rgba(124, 58, 237, 0.18);
+}
+
+.purchase-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.purchase-name {
+    color: #ccc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.purchase-price {
+    color: #c084fc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* Desktop phone-entry override for purchases */
+#phone-purchases-app .phone-entry {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    transition: border-color 0.25s, background 0.25s;
+}
+
+#phone-purchases-app .phone-entry:hover {
+    background: rgba(124, 58, 237, 0.06);
+    border-color: rgba(124, 58, 237, 0.2);
+}
+
+#phone-purchases-app .phone-entry-header {
+    padding: 12px 14px;
+}
+
+#phone-purchases-app .phone-entry-content {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    color: #777;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+#phone-purchases-app .entry-delete {
+    color: #333;
+}
+
+#phone-purchases-app .entry-delete:hover {
+    color: #ff4444;
+}
+
+/* Generate button inside purchases */
+#phone-purchases-app .phone-gen-btn {
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px dashed rgba(124, 58, 237, 0.2);
+    color: #555;
+    border-radius: 14px;
+}
+
+#phone-purchases-app .phone-gen-btn:hover {
+    border-color: rgba(124, 58, 237, 0.45);
+    color: #c084fc;
+    background: rgba(124, 58, 237, 0.1);
+}
+
+/* --- PURCHASE CARDS: MOBILE FULL-SCREEN --- */
+
+@media (max-width: 768px) {
+
+    body.phone-active #mobile-phone .phone-entry {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+
+    body.phone-active #mobile-phone .phone-entry:active {
+        border-color: rgba(124, 58, 237, 0.35);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    body.phone-active #mobile-phone .phone-entry-header {
+        padding: 0;
+    }
+
+    body.phone-active #mobile-phone .entry-delete {
+        display: none;
+    }
+
+    body.phone-active #mobile-phone .phone-entry-content {
+        display: none !important;
+    }
+
+    body.phone-active #mobile-phone .purchase-icon {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    body.phone-active #mobile-phone .purchase-name {
+        font-size: 13px;
+        color: #ddd;
+    }
+
+    body.phone-active #mobile-phone .purchase-price {
+        font-size: 14px;
+    }
+
+    body.phone-active #mobile-phone #phone-purchases-app {
+        height: 100%;
+        background: #000;
+    }
+
+    body.phone-active #mobile-phone #phone-purchases-app .app-body {
+        flex: 1;
+        max-height: none;
+        overflow-y: auto;
+        padding: 12px 16px 30px;
+        background: #000;
+    }
+
+    body.phone-active #mobile-phone #phone-purchases-app .app-header {
+        background: #000;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 }
