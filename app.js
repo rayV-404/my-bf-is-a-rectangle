@@ -914,7 +914,7 @@ const kittyNotifications = [
     "google says ur symptoms mean ur dying. rip babe",
     "can u buy more monster ur fridge is empty",
     "leon kennedy could never",
-    "hey loser ❤️",
+    "hey beautiful ❤️",
     "do NOT let me open taobao rn",
     "if you don't reply in 5 min i'm eating your ramen"
 ];
@@ -1240,8 +1240,6 @@ function renderPhonePurchases() {
     phonePurchases.forEach((p, i) => {
         const text = p.text.trim();
 
-        // AI 生成格式：
-        // ITEM NAME — $PRICE
         const match = text.match(/^(.*?)\s*[—-]\s*(\$[\d,.]+)/);
 
         let itemName = text;
@@ -1256,24 +1254,37 @@ function renderPhonePurchases() {
         div.className = "phone-entry";
 
         div.innerHTML = `
-            <div class="purchase-card">
+            <div class="phone-entry-header"
+                 onclick="togglePhoneEntry(this)">
 
-                <div class="purchase-icon">
-                    🛍️
-                </div>
+                <div class="purchase-card">
 
-                <div class="purchase-info">
-
-                    <div class="purchase-name">
-                        ${escapeHtml(itemName)}
+                    <div class="purchase-icon">
+                        🛍️
                     </div>
 
-                    <div class="purchase-price">
-                        ${escapeHtml(price)}
+                    <div class="purchase-info">
+
+                        <div class="purchase-name">
+                            ${escapeHtml(itemName)}
+                        </div>
+
+                        <div class="purchase-price">
+                            ${escapeHtml(price)}
+                        </div>
+
                     </div>
 
                 </div>
 
+            </div>
+
+            <div class="phone-entry-content" style="display:none;">
+                ${escapeHtml(text).replace(/\n/g, "<br>")}
+
+                <div class="entry-time">
+                    ${escapeHtml(p.time || "")}
+                </div>
             </div>
         `;
 
