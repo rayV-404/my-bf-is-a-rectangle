@@ -134,62 +134,171 @@ async function fetchModels() {
 }
 
 // ===== EXPORT / IMPORT =====
+
 function exportData() {
     let data = {
+        // ===== CHAT =====
         allChats: JSON.parse(localStorage.getItem("allChats") || "[]"),
         activeChatId: localStorage.getItem("activeChatId") || "",
+
+        // ===== FREQUENCIES =====
         frequencies: JSON.parse(localStorage.getItem("frequencies") || "[]"),
+
+        // ===== MEMORY =====
+        memories: JSON.parse(localStorage.getItem("memories") || "[]"),
+
+        // ===== JOHN'S PHONE =====
+        phoneNotes: JSON.parse(localStorage.getItem("phoneNotes") || "[]"),
+        phonePurchases: JSON.parse(localStorage.getItem("phonePurchases") || "[]"),
+
+        // ===== API SETTINGS =====
         apiUrl: localStorage.getItem("apiUrl") || "",
         apiKey: localStorage.getItem("apiKey") || "",
         modelName: localStorage.getItem("modelName") || "",
         maxTokens: localStorage.getItem("maxTokens") || "",
         temperature: localStorage.getItem("temperature") || "",
         sysPrompt: localStorage.getItem("sysPrompt") || "",
+
+        // ===== API PRESETS =====
         apiPresets: JSON.parse(localStorage.getItem("apiPresets") || "[]")
     };
 
-    let blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    let blob = new Blob(
+        [JSON.stringify(data, null, 2)],
+        { type: "application/json" }
+    );
+
     let url = URL.createObjectURL(blob);
+
     let a = document.createElement("a");
     a.href = url;
-    a.download = "rectangle-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.download =
+        "rectangle-backup-" +
+        new Date().toISOString().slice(0, 10) +
+        ".json";
+
     a.click();
+
     URL.revokeObjectURL(url);
 }
+
 
 document.getElementById("import-btn").addEventListener("click", () => {
     document.getElementById("importFile").click();
 });
 
+
 document.getElementById("importFile").addEventListener("change", function() {
+
     let file = this.files[0];
     if (!file) return;
 
     let reader = new FileReader();
+
     reader.onload = function(e) {
+
         try {
+
             let data = JSON.parse(e.target.result);
 
-            if (!confirm("this will overwrite all current data. continue?")) return;
+            if (!confirm("this will overwrite all current data. continue?")) {
+                return;
+            }
 
-            if (data.allChats) localStorage.setItem("allChats", JSON.stringify(data.allChats));
-            if (data.activeChatId) localStorage.setItem("activeChatId", data.activeChatId);
-            if (data.frequencies) localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
-            if (data.apiUrl) localStorage.setItem("apiUrl", data.apiUrl);
-            if (data.apiKey) localStorage.setItem("apiKey", data.apiKey);
-            if (data.modelName) localStorage.setItem("modelName", data.modelName);
-            if (data.maxTokens) localStorage.setItem("maxTokens", data.maxTokens);
-            if (data.temperature) localStorage.setItem("temperature", data.temperature);
-            if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
-            if (data.apiPresets) localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
+            // ===== CHAT =====
+            if (data.allChats) {
+                localStorage.setItem(
+                    "allChats",
+                    JSON.stringify(data.allChats)
+                );
+            }
 
+            if (data.activeChatId) {
+                localStorage.setItem(
+                    "activeChatId",
+                    data.activeChatId
+                );
+            }
+
+            // ===== FREQUENCIES =====
+            if (data.frequencies) {
+                localStorage.setItem(
+                    "frequencies",
+                    JSON.stringify(data.frequencies)
+                );
+            }
+
+            // ===== MEMORY =====
+            if (data.memories) {
+                localStorage.setItem(
+                    "memories",
+                    JSON.stringify(data.memories)
+                );
+            }
+
+            // ===== JOHN'S PHONE =====
+            if (data.phoneNotes) {
+                localStorage.setItem(
+                    "phoneNotes",
+                    JSON.stringify(data.phoneNotes)
+                );
+            }
+
+            if (data.phonePurchases) {
+                localStorage.setItem(
+                    "phonePurchases",
+                    JSON.stringify(data.phonePurchases)
+                );
+            }
+
+            // ===== API SETTINGS =====
+            if (data.apiUrl) {
+                localStorage.setItem("apiUrl", data.apiUrl);
+            }
+
+            if (data.apiKey) {
+                localStorage.setItem("apiKey", data.apiKey);
+            }
+
+            if (data.modelName) {
+                localStorage.setItem("modelName", data.modelName);
+            }
+
+            if (data.maxTokens) {
+                localStorage.setItem("maxTokens", data.maxTokens);
+            }
+
+            if (data.temperature) {
+                localStorage.setItem("temperature", data.temperature);
+            }
+
+            if (data.sysPrompt) {
+                localStorage.setItem("sysPrompt", data.sysPrompt);
+            }
+
+            // ===== API PRESETS =====
+            if (data.apiPresets) {
+                localStorage.setItem(
+                    "apiPresets",
+                    JSON.stringify(data.apiPresets)
+                );
+            }
+
+            // Reload so all JS variables are rebuilt
+            // from the newly imported localStorage.
             location.reload();
+
         } catch (err) {
+
             alert("invalid file: " + err.message);
+
         }
+
     };
+
     reader.readAsText(file);
 
+    // Allow selecting the same file again later
     this.value = "";
 });
 
