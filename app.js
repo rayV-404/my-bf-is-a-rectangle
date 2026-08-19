@@ -272,6 +272,16 @@ function handleFiles(files) {
     });
     fileList.innerHTML = existing;
 }
+function formatMsgTime(ts) {
+    if (!ts) return "";
+    let d = new Date(ts);
+    let mm = String(d.getMonth() + 1).padStart(2, "0");
+    let dd = String(d.getDate()).padStart(2, "0");
+    let hh = String(d.getHours()).padStart(2, "0");
+    let mi = String(d.getMinutes()).padStart(2, "0");
+    return mm + "." + dd + " // " + hh + ":" + mi;
+}
+
 
 // ===== UTILITIES =====
 function renderMarkdown(text) {
@@ -1126,6 +1136,15 @@ function renderChatbox() {
         wrapper.setAttribute("data-index", i);
         wrapper.setAttribute("data-role", msg.role);
 
+        // thinking block comes first — it happens before the reply
+        if (msg.thinking) {
+            let thinkDiv = document.createElement("div");
+            thinkDiv.className = "msg-think";
+            thinkDiv.innerHTML = `<div class="msg-think-toggle">▸ static ⋯</div><div class="msg-think-body"></div>`;
+            thinkDiv.querySelector(".msg-think-body").textContent = msg.thinking;
+            wrapper.appendChild(thinkDiv);
+        }
+
         let contentDiv = document.createElement("div");
         contentDiv.className = cls;
         contentDiv.innerHTML = renderMarkdown(msg.content);
@@ -1140,6 +1159,15 @@ function renderChatbox() {
 
         wrapper.appendChild(contentDiv);
         wrapper.appendChild(actionsDiv);
+
+        // timestamp below everything, aligned to sender's side
+        if (msg.time) {
+            let timeDiv = document.createElement("div");
+            timeDiv.className = "msg-time";
+            timeDiv.textContent = formatMsgTime(msg.time);
+            wrapper.appendChild(timeDiv);
+        }
+
         chatbox.appendChild(wrapper);
     });
     chatbox.scrollTop = chatbox.scrollHeight;
@@ -1207,7 +1235,17 @@ async function callAPI() {
     let memoryData = JSON.parse(localStorage.getItem("memories") || "[]");
     let memoryText = memoryData.map(m => "[" + m.date + "] " + m.content).join("\n");
 
-    let fullSystem = (sysPrompt ? sysPrompt + "\n\n" : "")
+        // time awareness for the AI
+    let now = new Date();
+    let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    let months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    let timeContext = "[Current date & time: " + days[now.getDay()] + ", " +
+        months[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear() +
+        ", " + now.getHours().toString().padStart(2, "0") + ":" +
+        now.getMinutes().toString().padStart(2, "0") + "]\n\n";
+
+
+    let fullSystem = timeContext + (sysPrompt ? sysPrompt + "\n\n" : "")
         + (recentFreqs ? "[Recent Frequencies between you and Ray — reference these naturally if relevant, don't force it]:\n" + recentFreqs + "\n\n" : "")
         + (recentNotes ? "[Things on your phone's notes — you can reference these if relevant, don't force it]:\n" + recentNotes + "\n\n" : "")
         + (recentPurchases ? "[Your recent purchases — you can reference these if relevant, don't force it]:\n" + recentPurchases + "\n\n" : "")
@@ -1235,9 +1273,13 @@ async function callAPI() {
         let data = await response.json();
         document.getElementById("typing")?.remove();
 
-        if (data.choices && data.choices[0]) {
+            if (data.choices && data.choices[0]) {
             let reply = data.choices[0].message.content;
-            chatHistory.push({ role: "assistant", content: reply });
+            // capture thinking from common OpenAI-compatible field names
+            let raw = data.choices[0].message;
+            let thinking = raw.reasoning_content || raw.reasoning || raw.thinking || null;
+            chatHistory.push({ role: "assistant", content: reply, thinking: thinking, time: Date.now() });
+
             saveChatHistory();
             renderChatbox();
         } else if (data.error) {
@@ -1294,7 +1336,7 @@ async function sendMsg() {
     let text = input.value.trim();
     if (!text) return;
 
-    chatHistory.push({ role: "user", content: text });
+    chatHistory.push({ role: "user", content: text, time: Date.now() });
 
     // auto-rename new chats
     let activeChat = getActiveChat();
@@ -1409,6 +1451,14 @@ document.getElementById("chatbox").addEventListener("click", function(e) {
         } else if (action === "regenerate") {
             regenerateMessage(index);
         }
+        return;
+    }
+        // toggle thinking block (must return, so wrapper toggle doesn't fire)
+    let thinkToggle = e.target.closest(".msg-think-toggle");
+    if (thinkToggle) {
+        let think = thinkToggle.closest(".msg-think");
+        think.classList.toggle("open");
+        thinkToggle.textContent = think.classList.contains("open") ? "▾ static ⋯" : "▸ static ⋯";
         return;
     }
 
