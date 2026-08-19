@@ -1497,7 +1497,7 @@ function renderMemories() {
             let groupDiv = document.createElement("div");
             groupDiv.className = "memory-month-group";
             let count = groups[month].length;
-            groupDiv.innerHTML = `<div class="memory-month-header">▼ ${month} <span style="float:right;color:#555;">${count}条</span></div>`;
+            groupDiv.innerHTML = `<div class="memory-month-header" data-month="${month}" onclick="toggleMemoryMonth(this)">▼ ${month} <span style="float:right;color:#555;">${count}条</span></div>`;
             groups[month].forEach(mem => {
                 let entry = document.createElement("div");
                 entry.className = "memory-entry";
@@ -1515,6 +1515,17 @@ function renderMemories() {
         });
     });
 }
+
+// NEW: 月份折叠/展开
+function toggleMemoryMonth(el) {
+    let group = el.closest('.memory-month-group');
+    if (!group) return;
+    let collapsed = group.classList.toggle('collapsed');
+    let count = group.querySelectorAll('.memory-entry').length;
+    el.innerHTML = (collapsed ? '▶ ' : '▼ ') + el.dataset.month +
+        ` <span style="float:right;color:#555;">${count}条</span>`;
+}
+
 
 // ===== MOBILE SIDEBAR + VIEW SWITCHING =====
 function toggleSidebar() {
@@ -1563,12 +1574,14 @@ function showMobileView(view) {
 
     // hide everything
     document.getElementById("chat-area").classList.add("hidden");
-    document.querySelectorAll(".mobile-view").forEach(v => {
+        document.querySelectorAll(".mobile-view").forEach(v => {
         v.classList.remove("active");
-        // clear mobile view bodies
+        // clear mobile view bodies — except memory (its body may hold its own input)
+        if (v.id === "mobile-memory") return;
         let body = v.querySelector(".mobile-view-body");
         if (body) body.innerHTML = "";
     });
+
 
     // hide/show topbar title
     let title = document.getElementById("topbar-title");
@@ -1613,7 +1626,10 @@ function showMobileView(view) {
 }
 
 function addMemoryMobile() {
-    let input = document.getElementById("memory-input-mobile");
+    // FIXED: mobile input may have been wiped by view switching —
+    // fall back to the desktop input inside memory-section
+    let input = document.getElementById("memory-input-mobile") || document.getElementById("memory-input");
+    if (!input) return;
     let text = input.value.trim();
     if (!text) return;
     let today = new Date();
@@ -1623,6 +1639,7 @@ function addMemoryMobile() {
     input.value = "";
     renderMemories();
 }
+
 
 function openMemoryPanel() {
     if (isMobile()) {
