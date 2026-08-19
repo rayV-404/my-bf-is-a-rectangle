@@ -1105,12 +1105,31 @@ function resetPhoneToLockScreen() {
     // 每次重新打开手机时换一个问题
     loadNewQuestion();
 }
+async function generateAppTitle(appType) {
+    const subtitleEl = document.getElementById(`${appType}-subtitle`);
+    if (!subtitleEl) return;
+
+    subtitleEl.textContent = '...';
+    subtitleEl.style.opacity = '0.4';
+
+    const prompts = {
+        purchases: `You are John S. Generate a short, witty subtitle for your purchase history app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly suspicious, like you know she's looking. Examples of the VIBE (don't reuse these): "for completely innocent purposes", "nothing to see here babe", "all tax deductible i promise". Just the subtitle, nothing else.`,
+        notes: `You are John S. Generate a short, witty subtitle for your notes app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly embarrassed, like you didn't expect her to find these. Examples of the VIBE (don't reuse these): "things i'll deny writing", "not a diary. shut up.", "thoughts that should've stayed thoughts". Just the subtitle, nothing else.`
+    };
+
+    let reply = await freqAPI(prompts[appType]);
+
+    if (reply) {
+        subtitleEl.textContent = reply.toLowerCase().replace(/^["']|["']$/g, '').replace(/\.$/,'');
+        subtitleEl.style.opacity = '1';
+    } else {
+        subtitleEl.textContent = '';
+    }
+}
 
 function openPhoneApp(app) {
-    // 隐藏 Home
     document.getElementById("phone-home").style.display = "none";
 
-    // 隐藏 Dead Drop 外层的 ×
     const closeButton = document.querySelector("#mobile-phone .close-x");
     if (closeButton) {
         closeButton.style.display = "none";
@@ -1119,11 +1138,13 @@ function openPhoneApp(app) {
     if (app === "notes") {
         document.getElementById("phone-notes-app").style.display = "flex";
         renderPhoneNotes();
+        generateAppTitle('notes');
     }
 
     if (app === "purchases") {
         document.getElementById("phone-purchases-app").style.display = "flex";
         renderPhonePurchases();
+        generateAppTitle('purchases');
     }
 }
 function closePhoneApp() {
@@ -1150,7 +1171,13 @@ async function generateNote() {
         (m.role === "user" ? "Ray" : "John") + ": " + m.content
     ).join("\n");
 
-    let existingNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty). Generate ONE note found on his phone. Could be: a reminder, a random thought, lyrics he's working on, a to-do list, something about Ray, a grocery list, a rant, a voice-memo transcript. Keep it natural, short (2-5 lines), in-character. Messy and real — not polished.
+    let existingNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
+
+    let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty).
+
+Generate ONE note found on his phone. Return in this EXACT format:
+TITLE: [a short witty title, 3-6 words, lowercase, like john named this note knowing his gf might snoop]
+NOTE: [the actual note content, 2-5 lines, messy and real — not polished]
 
 Recent conversations for context:
 ${recentChat || "(no recent chat)"}
@@ -1158,16 +1185,30 @@ ${recentChat || "(no recent chat)"}
 Already existing notes (DO NOT repeat these or write anything too similar):
 ${existingNotes || "(none yet)"}
 
-Write ONLY the note. Nothing else.`;
+Return ONLY the TITLE and NOTE lines. Nothing else.`;
 
     let reply = await freqAPI(prompt);
     if (reply) {
-        phoneNotes.unshift({ text: reply, time: new Date().toLocaleString(), id: Date.now() });
+        let title = "";
+        let text = reply;
+
+        let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
+        let noteMatch = reply.match(/NOTE:\s*([\s\S]+)/im);
+
+        if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
+        if (noteMatch) text = noteMatch[1].trim();
+
+        phoneNotes.unshift({
+            title: title,
+            text: text,
+            time: new Date().toLocaleString(),
+            id: Date.now()
+        });
         localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
         renderPhoneNotes();
     }
 
-    btn.textContent = "+ generate";
+    btn.textContent = "+ intercept thought";
     btn.disabled = false;
 }
 
@@ -1177,13 +1218,15 @@ function renderPhoneNotes() {
     list.innerHTML = "";
 
     phoneNotes.forEach((note, i) => {
-        let preview = note.text.split("\n")[0].slice(0, 40) + (note.text.length > 40 ? "..." : "");
+        // backwards compat: old entries without title fall back to first line
+        let displayTitle = note.title || note.text.split("\n")[0].slice(0, 40) + (note.text.length > 40 ? "..." : "");
+
         let div = document.createElement("div");
         div.className = "phone-entry";
         div.innerHTML = `
-            <div class="phone-entry-header">
-                <span class="entry-preview" onclick="togglePhoneEntry(this)">${escapeHtml(preview)}</span>
-                <span class="entry-delete" onclick="deletePhoneNote(${i})">×</span>
+            <div class="phone-entry-header" onclick="togglePhoneEntry(this)">
+                <span class="entry-preview">${escapeHtml(displayTitle)}</span>
+                <span class="entry-delete" onclick="event.stopPropagation(); deletePhoneNote(${i})">×</span>
             </div>
             <div class="phone-entry-content" style="display:none;">
                 ${escapeHtml(note.text).replace(/\n/g, '<br>')}
@@ -1206,12 +1249,19 @@ async function generatePurchase() {
     btn.textContent = "...";
     btn.disabled = true;
 
-     let recentChat = chatHistory.slice(-10).map(m =>(m.role === "user" ? "Ray" : "John") + ": " + m.content
+    let recentChat = chatHistory.slice(-10).map(m =>
+        (m.role === "user" ? "Ray" : "John") + ": " + m.content
     ).join("\n");
 
     let existingPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
 
-    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty). Generate ONE purchase entry. Format: ITEM NAME — $PRICE. Could be practical, romantic, embarrassing, weird, or funny. Things John would actually buy: drum gear, black clothes, coffee supplies, ramen ingredients, gifts for Ray, horror merch, random 2am impulse buys. Reference recent conversations if something inspires a purchase naturally.
+    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty).
+
+Generate ONE purchase entry. Return in this EXACT format:
+TITLE: [a short witty title, 3-6 words, lowercase — like john is justifying this purchase to his snooping girlfriend. e.g. "for completely innocent purposes", "it was on sale okay", "don't ask about this one"]
+ITEM: [item name] — $[price]
+
+Could be practical, romantic, embarrassing, weird, or funny. Things John would actually buy: drum gear, black clothes, coffee supplies, ramen ingredients, gifts for Ray, horror merch, random 2am impulse buys.
 
 Recent conversations:
 ${recentChat || "(no recent chat)"}
@@ -1219,75 +1269,69 @@ ${recentChat || "(no recent chat)"}
 Already existing purchases (DO NOT repeat these or write anything too similar):
 ${existingPurchases || "(none yet)"}
 
-Write ONLY the purchase line. Nothing else.`;
+Return ONLY the TITLE and ITEM lines. Nothing else.`;
+
     let reply = await freqAPI(prompt);
     if (reply) {
-        phonePurchases.unshift({ text: reply, time: new Date().toLocaleString(), id: Date.now() });
+        let title = "";
+        let text = reply;
+
+        let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
+        let itemMatch = reply.match(/ITEM:\s*(.+)/im);
+
+        if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
+        if (itemMatch) text = itemMatch[1].trim();
+
+        phonePurchases.unshift({
+            title: title,
+            text: text,
+            time: new Date().toLocaleString(),
+            id: Date.now()
+        });
         localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
         renderPhonePurchases();
     }
 
-    btn.textContent = "+ generate";
+    btn.textContent = "+ dig deeper";
     btn.disabled = false;
 }
 
 function renderPhonePurchases() {
     const list = document.getElementById("purchases-list");
     if (!list) return;
-
     list.innerHTML = "";
 
     phonePurchases.forEach((p, i) => {
         const text = p.text.trim();
-
         const match = text.match(/^(.*?)\s*[—-]\s*(\$[\d,.]+)/);
 
         let itemName = text;
         let price = "";
-
         if (match) {
             itemName = match[1].trim();
             price = match[2].trim();
         }
 
+        // collapsed: show title. expanded: show actual item
+        let displayTitle = p.title || itemName;
+
         const div = document.createElement("div");
         div.className = "phone-entry";
-
         div.innerHTML = `
-            <div class="phone-entry-header"
-                 onclick="togglePhoneEntry(this)">
-
+            <div class="phone-entry-header" onclick="togglePhoneEntry(this)">
                 <div class="purchase-card">
-
-                    <div class="purchase-icon">
-                        🛍️
-                    </div>
-
+                    <div class="purchase-icon">🦇</div>
                     <div class="purchase-info">
-
-                        <div class="purchase-name">
-                            ${escapeHtml(itemName)}
-                        </div>
-
-                        <div class="purchase-price">
-                            ${escapeHtml(price)}
-                        </div>
-
+                        <div class="purchase-name">${escapeHtml(displayTitle)}</div>
+                        <div class="purchase-price">${escapeHtml(price)}</div>
                     </div>
-
                 </div>
-
             </div>
-
             <div class="phone-entry-content" style="display:none;">
-                ${escapeHtml(text).replace(/\n/g, "<br>")}
-
-                <div class="entry-time">
-                    ${escapeHtml(p.time || "")}
-                </div>
+                ${escapeHtml(itemName)}${price ? ' — ' + escapeHtml(price) : ''}
+                <div class="entry-time">${escapeHtml(p.time || "")}</div>
             </div>
         `;
-
         list.appendChild(div);
     });
 }
@@ -1886,6 +1930,7 @@ function openMemoryPanel() {
         section.scrollIntoView({ behavior: "smooth" });
     }
 }
+
 
 // ===== INIT =====
 loadSettings();
