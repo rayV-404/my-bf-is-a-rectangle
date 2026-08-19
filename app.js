@@ -18,6 +18,7 @@ function saveSettings() {
     document.getElementById("settings-overlay").classList.remove("open");
     renderPresetDropdown();
 }
+
 // ===== API PRESETS =====
 let apiPresets = JSON.parse(localStorage.getItem("apiPresets") || "[]");
 
@@ -35,7 +36,6 @@ function renderPresetDropdown() {
 function savePreset() {
     let name = prompt("preset name:");
     if (!name || !name.trim()) return;
-
     let preset = {
         name: name.trim(),
         url: document.getElementById("apiUrl").value,
@@ -44,11 +44,9 @@ function savePreset() {
         maxTokens: document.getElementById("maxTokens").value,
         temperature: document.getElementById("temperature").value
     };
-
     apiPresets.push(preset);
     localStorage.setItem("apiPresets", JSON.stringify(apiPresets));
     renderPresetDropdown();
-
     // auto-select the one we just saved
     document.getElementById("presetSelect").value = apiPresets.length - 1;
 }
@@ -61,7 +59,6 @@ function deletePreset() {
         return;
     }
     if (!confirm("delete preset: " + apiPresets[idx].name + "?")) return;
-
     apiPresets.splice(idx, 1);
     localStorage.setItem("apiPresets", JSON.stringify(apiPresets));
     renderPresetDropdown();
@@ -70,14 +67,12 @@ function deletePreset() {
 document.getElementById("presetSelect").addEventListener("change", function() {
     let idx = this.value;
     if (idx === "") return;
-
     let p = apiPresets[idx];
     document.getElementById("apiUrl").value = p.url || "";
     document.getElementById("apiKey").value = p.key || "";
     document.getElementById("modelName").value = p.model || "";
     document.getElementById("maxTokens").value = p.maxTokens || "4096";
     document.getElementById("temperature").value = p.temperature || "0.7";
-
     // hide model dropdown if visible
     document.getElementById("modelSelect").style.display = "none";
 });
@@ -86,36 +81,30 @@ document.getElementById("presetSelect").addEventListener("change", function() {
 async function fetchModels() {
     let apiUrl = document.getElementById("apiUrl").value;
     let apiKey = document.getElementById("apiKey").value;
-
     if (!apiUrl || !apiKey) {
         alert("fill in API URL and key first");
         return;
     }
-
     let btn = document.querySelector(".fetch-btn");
     btn.textContent = "📡 ...";
     btn.disabled = true;
-
     try {
         let res = await fetch(apiUrl + "/models", {
             headers: { "Authorization": "Bearer " + apiKey }
         });
         let data = await res.json();
-
         let models = [];
         if (data.data && Array.isArray(data.data)) {
             models = data.data.map(m => m.id).sort();
         } else if (Array.isArray(data)) {
             models = data.map(m => m.id || m).sort();
         }
-
         if (models.length === 0) {
             alert("no models found");
             btn.textContent = "📡 fetch";
             btn.disabled = false;
             return;
         }
-
         let select = document.getElementById("modelSelect");
         select.innerHTML = '<option value="">-- pick a model --</option>';
         models.forEach(m => {
@@ -123,34 +112,28 @@ async function fetchModels() {
             opt.value = m;
             opt.textContent = m;
             select.appendChild(opt);
-        });select.style.display = "block";
-
+        });
+        select.style.display = "block";
     } catch (err) {
         alert("failed to fetch: " + err.message);
     }
-
     btn.textContent = "📡 fetch";
     btn.disabled = false;
 }
 
 // ===== EXPORT / IMPORT =====
-
 function exportData() {
     let data = {
         // ===== CHAT =====
         allChats: JSON.parse(localStorage.getItem("allChats") || "[]"),
         activeChatId: localStorage.getItem("activeChatId") || "",
-
         // ===== FREQUENCIES =====
         frequencies: JSON.parse(localStorage.getItem("frequencies") || "[]"),
-
         // ===== MEMORY =====
         memories: JSON.parse(localStorage.getItem("memories") || "[]"),
-
         // ===== JOHN'S PHONE =====
         phoneNotes: JSON.parse(localStorage.getItem("phoneNotes") || "[]"),
         phonePurchases: JSON.parse(localStorage.getItem("phonePurchases") || "[]"),
-
         // ===== API SETTINGS =====
         apiUrl: localStorage.getItem("apiUrl") || "",
         apiKey: localStorage.getItem("apiKey") || "",
@@ -158,150 +141,79 @@ function exportData() {
         maxTokens: localStorage.getItem("maxTokens") || "",
         temperature: localStorage.getItem("temperature") || "",
         sysPrompt: localStorage.getItem("sysPrompt") || "",
-
         // ===== API PRESETS =====
         apiPresets: JSON.parse(localStorage.getItem("apiPresets") || "[]")
     };
-
     let blob = new Blob(
         [JSON.stringify(data, null, 2)],
         { type: "application/json" }
     );
-
     let url = URL.createObjectURL(blob);
-
     let a = document.createElement("a");
     a.href = url;
-    a.download =
-        "rectangle-backup-" +
-        new Date().toISOString().slice(0, 10) +
-        ".json";
-
+    a.download = "rectangle-backup-" + new Date().toISOString().slice(0, 10) + ".json";
     a.click();
-
     URL.revokeObjectURL(url);
 }
-
 
 document.getElementById("import-btn").addEventListener("click", () => {
     document.getElementById("importFile").click();
 });
 
-
 document.getElementById("importFile").addEventListener("change", function() {
-
     let file = this.files[0];
     if (!file) return;
-
     let reader = new FileReader();
-
     reader.onload = function(e) {
-
         try {
-
             let data = JSON.parse(e.target.result);
-
             if (!confirm("this will overwrite all current data. continue?")) {
                 return;
             }
-
             // ===== CHAT =====
             if (data.allChats) {
-                localStorage.setItem(
-                    "allChats",
-                    JSON.stringify(data.allChats)
-                );
+                localStorage.setItem("allChats", JSON.stringify(data.allChats));
             }
-
             if (data.activeChatId) {
-                localStorage.setItem(
-                    "activeChatId",
-                    data.activeChatId
-                );
+                localStorage.setItem("activeChatId", data.activeChatId);
             }
-
             // ===== FREQUENCIES =====
             if (data.frequencies) {
-                localStorage.setItem(
-                    "frequencies",
-                    JSON.stringify(data.frequencies)
-                );
+                localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
             }
-
             // ===== MEMORY =====
             if (data.memories) {
-                localStorage.setItem(
-                    "memories",
-                    JSON.stringify(data.memories)
-                );
+                localStorage.setItem("memories", JSON.stringify(data.memories));
             }
-
             // ===== JOHN'S PHONE =====
             if (data.phoneNotes) {
-                localStorage.setItem(
-                    "phoneNotes",
-                    JSON.stringify(data.phoneNotes)
-                );
+                localStorage.setItem("phoneNotes", JSON.stringify(data.phoneNotes));
             }
-
             if (data.phonePurchases) {
-                localStorage.setItem(
-                    "phonePurchases",
-                    JSON.stringify(data.phonePurchases)
-                );
+                localStorage.setItem("phonePurchases", JSON.stringify(data.phonePurchases));
             }
-
             // ===== API SETTINGS =====
-            if (data.apiUrl) {
-                localStorage.setItem("apiUrl", data.apiUrl);
-            }
-
-            if (data.apiKey) {
-                localStorage.setItem("apiKey", data.apiKey);
-            }
-
-            if (data.modelName) {
-                localStorage.setItem("modelName", data.modelName);
-            }
-
-            if (data.maxTokens) {
-                localStorage.setItem("maxTokens", data.maxTokens);
-            }
-
-            if (data.temperature) {
-                localStorage.setItem("temperature", data.temperature);
-            }
-
-            if (data.sysPrompt) {
-                localStorage.setItem("sysPrompt", data.sysPrompt);
-            }
-
+            if (data.apiUrl) localStorage.setItem("apiUrl", data.apiUrl);
+            if (data.apiKey) localStorage.setItem("apiKey", data.apiKey);
+            if (data.modelName) localStorage.setItem("modelName", data.modelName);
+            if (data.maxTokens) localStorage.setItem("maxTokens", data.maxTokens);
+            if (data.temperature) localStorage.setItem("temperature", data.temperature);
+            if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
             // ===== API PRESETS =====
             if (data.apiPresets) {
-                localStorage.setItem(
-                    "apiPresets",
-                    JSON.stringify(data.apiPresets)
-                );
+                localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
             }
-
             // Reload so all JS variables are rebuilt
             // from the newly imported localStorage.
             location.reload();
-
         } catch (err) {
-
             alert("invalid file: " + err.message);
-
         }
-
     };
-
     reader.readAsText(file);
-
     // Allow selecting the same file again later
     this.value = "";
 });
-
 
 document.getElementById("modelSelect").addEventListener("change", function() {
     if (this.value) {
@@ -318,47 +230,42 @@ document.getElementById("settings-close").addEventListener("click", () => {
     document.getElementById("settings-overlay").classList.remove("open");
 });
 
-
 // ===== FILE UPLOAD =====
 const fileArea = document.getElementById("file-upload-area");
 const fileInput = document.getElementById("sysFiles");
 const fileList = document.getElementById("file-list");
 
 fileArea.addEventListener("click", () => fileInput.click());
-
 fileArea.addEventListener("dragover", (e) => {
     e.preventDefault();
     fileArea.style.borderColor = "#7c3aed";
 });
-
 fileArea.addEventListener("dragleave", () => {
     fileArea.style.borderColor = "#555";
 });
-
 fileArea.addEventListener("drop", (e) => {
     e.preventDefault();
     fileArea.style.borderColor = "#555";
     handleFiles(e.dataTransfer.files);
 });
-
 fileInput.addEventListener("change", () => {
     handleFiles(fileInput.files);
 });
 
+// FIXED: read current textarea value inside each async onload,
+// so multiple files no longer overwrite each other
 function handleFiles(files) {
     let names = [];
-    let allText = document.getElementById("sysPrompt").value;
-
     Array.from(files).forEach(file => {
         names.push(file.name);
         let reader = new FileReader();
         reader.onload = function(e) {
-            allText += "\n\n--- " + file.name + " ---\n" + e.target.result;
-            document.getElementById("sysPrompt").value = allText.trim();
+            let sysPromptEl = document.getElementById("sysPrompt");
+            sysPromptEl.value = (sysPromptEl.value ? sysPromptEl.value + "\n\n" : "") +
+                "--- " + file.name + " ---\n" + e.target.result;
         };
         reader.readAsText(file);
     });
-
     let existing = fileList.innerHTML;
     names.forEach(n => {
         existing += `<span style="display:inline-block; margin: 3px; padding: 3px 6px; background: #1a1a1a; border: 1px solid #555; border-radius: 3px;">${n} ✓</span>`;
@@ -371,21 +278,26 @@ function renderMarkdown(text) {
     let div = document.createElement("div");
     div.textContent = text;
     let escaped = div.innerHTML;
-
     escaped = escaped
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
         .replace(/^---$/gm, '<hr style="border: none; border-top: 1px solid #555; margin: 8px 0;">')
         .replace(/\n/g, '<br>');
-
     return escaped;
 }
+
+function escapeHtml(text) {
+    let div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // --- MULTI CHAT MANAGEMENT ---
 let allChats = [];
 let activeChatId = null;
 
 function generateId() {
-    return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    return 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 }
 
 function getActiveChat() {
@@ -409,14 +321,13 @@ function createNewChat() {
 }
 
 function switchChat(id) {
-    if (typeof isGenerating !== 'undefined' && isGenerating) stopGeneration();
+    if (isGenerating) stopGeneration();
     activeChatId = id;
     let chat = getActiveChat();
     chatHistory = chat ? chat.history : [];
     saveAllChats();
     renderChatList();
     renderChatbox();
-
     if (isMobile()) {
         showMobileView('chat');
     }
@@ -476,7 +387,6 @@ function renderChatList() {
             let today = new Date();
             let yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-
             if (d.toDateString() === today.toDateString()) {
                 dateKey = "today";
             } else if (d.toDateString() === yesterday.toDateString()) {
@@ -493,9 +403,8 @@ function renderChatList() {
         groups[dateKey].push(chat);
     });
 
-    // render groups
-    let order = Object.keys(groups);
     // put "today" first, "yesterday" second
+    let order = Object.keys(groups);
     order.sort((a, b) => {
         if (a === "today") return -1;
         if (b === "today") return 1;
@@ -509,7 +418,6 @@ function renderChatList() {
         header.className = "chat-date-header";
         header.textContent = dateKey;
         list.appendChild(header);
-
         groups[dateKey].forEach(chat => {
             let item = document.createElement("div");
             item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
@@ -525,6 +433,7 @@ function renderChatList() {
         });
     });
 }
+
 function loadAllChats() {
     let saved = localStorage.getItem("allChats");
     if (saved) {
@@ -539,22 +448,15 @@ function loadAllChats() {
         allChats = [firstChat];
         localStorage.removeItem("chatHistory");
     }
-
     let savedActive = localStorage.getItem("activeChatId");
     if (savedActive && allChats.find(c => c.id === savedActive)) {
         activeChatId = savedActive;
     } else if (allChats.length > 0) {
         activeChatId = allChats[0].id;
     }
-
     chatHistory = getActiveChat()?.history || [];
     renderChatList();
     renderChatbox();
-}
-function escapeHtml(text) {
-    let div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // ===== FREQUENCIES =====
@@ -564,14 +466,29 @@ function saveFrequencies() {
     localStorage.setItem("frequencies", JSON.stringify(frequencies));
 }
 
+// shared submit for reply button + Enter key
+async function submitFreqReply(idx, text) {
+    text = (text || "").trim();
+    if (!text) return;
+    if (!frequencies[idx].replies) frequencies[idx].replies = [];
+    frequencies[idx].replies.push({
+        sender: "ray",
+        text: text,
+        time: new Date().toLocaleString()
+    });
+    saveFrequencies();
+    renderFrequencies();
+    await autoReply(idx);
+}
+
 function renderFrequencies() {
     let timeline = document.getElementById("freq-timeline");
     timeline.innerHTML = "";
 
     let sorted = [...frequencies].reverse();
-
     sorted.forEach((entry, reverseIdx) => {
         let realIndex = frequencies.length - 1 - reverseIdx;
+
         let senderLabel = entry.sender === "john" ? "🖤john" : "💜ray";
 
         let repliesHtml = "";
@@ -591,31 +508,9 @@ function renderFrequencies() {
         let replyToggle = showReplyOption
             ? `<span class="freq-reply-toggle" data-index="${realIndex}">reply ↩</span>`
             : "";
-
         let replyInputHtml = showReplyOption
             ? `<div class="freq-reply-box" data-index="${realIndex}" style="display:none;"><div class="freq-reply-row"><input type="text" class="freq-reply-input" data-index="${realIndex}" placeholder="reply..."><button class="freq-reply-send" data-index="${realIndex}">↩</button></div></div>`
             : "";
-
-        // reply send button handlers
-        document.querySelectorAll(".freq-reply-send").forEach(btn => {
-            btn.addEventListener("click", async function () {
-                let idx = parseInt(this.dataset.index);
-                let input = document.querySelector(`.freq-reply-input[data-index="${idx}"]`);
-                if (input) {
-                    let text = input.value.trim();
-                    if (!text) return;
-                    if (!frequencies[idx].replies) frequencies[idx].replies = [];
-                    frequencies[idx].replies.push({
-                        sender: "ray",
-                        text: text,
-                        time: new Date().toLocaleString()
-                    });
-                    saveFrequencies();
-                    renderFrequencies();
-                    await autoReply(idx);
-                }
-            });
-        });
 
         let hasReplies = entry.replies && entry.replies.length > 0;
         let repliesSection = "";
@@ -637,6 +532,7 @@ function renderFrequencies() {
         timeline.appendChild(div);
     });
 
+    // FIXED: all handlers bound ONCE, outside the render loop
     document.querySelectorAll(".freq-delete").forEach(btn => {
         btn.addEventListener("click", function() {
             let idx = parseInt(this.dataset.index);
@@ -646,22 +542,18 @@ function renderFrequencies() {
         });
     });
 
-    document.querySelectorAll(".freq-reply-input").forEach(input => {
-        input.addEventListener("keydown", async function(e) {
-            if (e.key === "Enter") {
-                let idx = parseInt(this.dataset.index);
-                let text = this.value.trim();
-                if (!text) return;
+    document.querySelectorAll(".freq-reply-send").forEach(btn => {
+        btn.addEventListener("click", function() {
+            let idx = parseInt(this.dataset.index);
+            let input = document.querySelector(`.freq-reply-input[data-index="${idx}"]`);
+            if (input) submitFreqReply(idx, input.value);
+        });
+    });
 
-                if (!frequencies[idx].replies) frequencies[idx].replies = [];
-                frequencies[idx].replies.push({
-                    sender: "ray",
-                    text: text,
-                    time: new Date().toLocaleString()
-                });
-                saveFrequencies();
-                renderFrequencies();
-                await autoReply(idx);
+    document.querySelectorAll(".freq-reply-input").forEach(input => {
+        input.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                submitFreqReply(parseInt(this.dataset.index), this.value);
             }
         });
     });
@@ -683,9 +575,7 @@ async function freqAPI(prompt) {
     let apiUrl = localStorage.getItem("apiUrl");
     let apiKey = localStorage.getItem("apiKey");
     let model = localStorage.getItem("modelName") || "claude-opus-4-6-thinking";
-
     if (!apiUrl || !apiKey) return null;
-
     try {
         let res = await fetch(apiUrl + "/chat/completions", {
             method: "POST",
@@ -718,15 +608,12 @@ async function autoReply(index) {
             context += `${r.sender}: ${r.text}\n`;
         });
     }
-
     let prompt = `You are John S, a 24-25 year old guy. Your girlfriend Ray and you share a mood board called "Frequencies." Reply to this thread. Keep it short — one to three sentences. Be warm, teasing, natural. Include an emoji if it fits. You always get the last word.
 
 ${context}
 
 Reply as John. ONLY the reply text.`;
-
     let reply = await freqAPI(prompt);
-
     if (reply) {
         if (!frequencies[index].replies) frequencies[index].replies = [];
         frequencies[index].replies.push({
@@ -743,7 +630,6 @@ async function postFrequency() {
     let input = document.getElementById("freq-input");
     let text = input.value.trim();
     if (!text) return;
-
     frequencies.push({
         sender: "ray",
         text: text,
@@ -759,12 +645,10 @@ async function postFrequency() {
 async function generateFrequency() {
     let apiUrl = localStorage.getItem("apiUrl");
     let apiKey = localStorage.getItem("apiKey");
-
     if (!apiUrl || !apiKey) {
         alert("set up API first ⚙️");
         return;
     }
-
     let btn = document.getElementById("freq-generate");
     btn.textContent = "⚡ intercepting...";
     btn.disabled = true;
@@ -786,7 +670,6 @@ ${recentFreqs || "(none)"}
 Respond with ONLY the frequency text. Nothing else.`;
 
     let reply = await freqAPI(prompt);
-
     if (reply) {
         frequencies.push({
             sender: "john",
@@ -799,12 +682,9 @@ Respond with ONLY the frequency text. Nothing else.`;
     } else {
         console.log("generateFrequency: no reply received");
     }
-
     btn.textContent = "⚡ intercept signal";
     btn.disabled = false;
 }
-
-renderFrequencies();
 
 // ===== IPOD MUSIC PLAYER =====
 const audioPlayer = document.getElementById("audioPlayer");
@@ -812,24 +692,9 @@ let currentTrackIndex = 0;
 let isPlaying = false;
 
 const playlist = [
-    {
-        title: "Dissolved Girl",
-        artist: "Massive Attack",
-        cover: "mp3_player/dissolved_girl_cover.png",
-        audio: "mp3_player/dissolved_girl.mp3"
-    },
-    {
-        title: "Lhabia",
-        artist: "Deftones",
-        cover: "mp3_player/lhabia_cover.png",
-        audio: "mp3_player/Lhabia.mp3"
-    },
-    {
-        title: "Beetlebum",
-        artist: "BLUR",
-        cover: "mp3_player/beetlebum_cover.png",
-        audio: "mp3_player/Beetlebum.mp3"
-    }
+    { title: "Dissolved Girl", artist: "Massive Attack", cover: "mp3_player/dissolved_girl_cover.png", audio: "mp3_player/dissolved_girl.mp3" },
+    { title: "Lhabia", artist: "Deftones", cover: "mp3_player/lhabia_cover.png", audio: "mp3_player/Lhabia.mp3" },
+    { title: "Beetlebum", artist: "BLUR", cover: "mp3_player/beetlebum_cover.png", audio: "mp3_player/Beetlebum.mp3" }
 ];
 
 function loadTrack(index) {
@@ -895,13 +760,13 @@ audioPlayer.addEventListener("ended", () => {
 });
 
 let firstInteraction = false;
-
 function clearDefaultCover() {
     if (!firstInteraction) {
         firstInteraction = true;
         document.getElementById("albumCover").src = playlist[currentTrackIndex].cover;
     }
 }
+
 // ===== HACK JOHN'S PHONE =====
 let phoneNotes = JSON.parse(localStorage.getItem("phoneNotes") || "[]");
 let phonePurchases = JSON.parse(localStorage.getItem("phonePurchases") || "[]");
@@ -920,96 +785,21 @@ const kittyNotifications = [
 ];
 
 const phoneTrivia = [
-    {
-        q: "what's john's favorite color?",
-        a: ["black"],
-        wrong: "wow. you don't know that? we're breaking up.",
-        roast: "...what else would it be. pink? you know me better than that. unfortunately."
-    },
-    {
-        q: "john's go-to monster flavor?",
-        a: ["white", "ultra zero", "white monster"],
-        wrong: "...have you even seen my fridge?",
-      roast: "fridge is 80% monster 20% your leftover boba. priorities."
-     },
-    {
-        q: "what brand are john's drumsticks?",
-        a: ["vic firth"],
-        wrong: "i'm literally offended right now.",
-        roast: "okay fine. you can touch my sticks. that came out wrong. or did it."
-    },
-    {
-        q: "john's most played band?",
-        a: ["deftones"],
-        wrong: "do you even live here?",
-        roast: "MY playlist. you started stealing it month two. i have receipts."
-    },
-    {
-        q: "what does john order at the coffee shop?",
-        a: ["iced americano", "americano"],
-        wrong: "tell me you don't pay attention without telling me.",
-        roast: "black coffee for the boy in all black. i'm a brand, kitty."
-    },
-    {
-        q: "john's favorite horror movie?",
-        a: ["the thing"],
-        wrong: "we literally watched this three times. THREE.",
-        roast: "you screamed and hid behind me for 97% of it. that's not watching."
-    },
-    {
-        q: "what's john's ring size?",
-        a: ["10"],
-        wrong: "you've held my hands HOW many times?",
-        roast: "...why do you know that. are you proposing. say yes."
-    },
-    {
-        q: "john wears all black but what's the one color exception?",
-        a: ["grey", "gray"],
-        wrong: "so close yet so far away from my closet.",
-        roast: "it's the only exception. grey is just black being polite."
-    },
-    {
-        q: "what's john's guilty pleasure song?",
-        a: ["kiss me thru the phone", "kiss me through the phone"],
-        wrong: "okay that one's fair. i hide it well.",
-        roast: "if you tell ANYONE i will deny it under oath."
-    },
-    {
-        q: "john's go-to ramen order?",
-        a: ["tonkotsu extra chashu", "tonkotsu"],
-        wrong: "we've been to that place twelve times, kitty.",
-        roast: "extra chashu is non-negotiable. i don't trust people who skip it."
-    },
-    {
-        q: "what side of the bed does john sleep on?",
-        a: ["left"],
-        wrong: "you literally wake up next to me.",
-        roast: "...you're warm. get back in bed."
-    },
-    {
-        q: "john's least favorite social media?",
-        a: ["twitter", "x"],
-        wrong: "it's the obvious one come on.",
-       roast: "every second on that app costs me brain cells i'll never get back."
-    },
-    {
-        q: "what time does john usually wake up?",
-        a: ["9am", "9 am", "9", "9:00"],
-        wrong: "you've texted me good morning enough times to know this.",
-        roast: "9am sharp. unless someone keeps me up till 3. looking at you."
-    },
-    {
-        q: "john's first concert ever?",
-        a: ["linkin park"],
-        wrong: "i have the ticket stub framed. FRAMED.",
-        roast: "i was twelve. i cried. i will not elaborate."
-    },
-    {
-        q: "what does john fidget with when he's thinking?",
-        a: ["rings", "his rings"],
-        wrong: "you stare at my hands all day and you missed this?",
-        roast: "caught you staring again. at my hands. for 'research.'"
-    }
+    { q: "what's john's favorite color?", a: ["black"], wrong: "wow. you don't know that? we're breaking up.", roast: "...what else would it be. pink? you know me better than that. unfortunately." },
+    { q: "john's go-to monster flavor?", a: ["white", "ultra zero", "white monster"], wrong: "...have you even seen my fridge?", roast: "fridge is 80% monster 20% your leftover boba. priorities." },
+    { q: "what brand are john's drumsticks?", a: ["vic firth"], wrong: "i'm literally offended right now.", roast: "okay fine. you can touch my sticks. that came out wrong. or did it." },
+    { q: "john's most played band?", a: ["deftones"], wrong: "do you even live here?", roast: "MY playlist. you started stealing it month two. i have receipts." },
+    { q: "what does john order at the coffee shop?", a: ["iced americano", "americano"], wrong: "tell me you don't pay attention without telling me.", roast: "black coffee for the boy in all black. i'm a brand, kitty." },
+    { q: "john's favorite horror movie?", a: ["the thing"], wrong: "we literally watched this three times. THREE.", roast: "you screamed and hid behind me for 97% of it. that's not watching." },
+    { q: "what's john's ring size?", a: ["10"], wrong: "you've held my hands HOW many times?", roast: "...why do you know that. are you proposing. say yes." },
+    { q: "john wears all black but what's the one color exception?", a: ["grey", "gray"], wrong: "so close yet so far away from my closet.", roast: "it's the only exception. grey is just black being polite." },
+    { q: "what's john's guilty pleasure song?", a: ["kiss me thru the phone", "kiss me through the phone"], wrong: "okay that one's fair. i hide it well.", roast: "if you tell ANYONE i will deny it under oath." },
+    { q: "john's go-to ramen order?", a: ["tonkotsu extra chashu", "tonkotsu"], wrong: "we've been to that place twelve times, kitty.", roast: "extra chashu is non-negotiable. i don't trust people who skip it." },
+    { q: "what side of the bed does john sleep on?", a: ["left"], wrong: "you literally wake up next to me.", roast: "...you're warm. get back in bed." },
+    { q: "john's least favorite social media?", a: ["twitter", "x"], wrong: "it's the obvious one come on.", roast: "every second on that app costs me brain cells i'll never get back." },
+    { q: "what time does john usually wake up?", a: ["9am", "9 am", "9", "9:00"], wrong: "you've texted me good morning enough times to know this.", roast: "9am sharp. unless someone keeps me up till 3. looking at you." },
+    { q: "john's first concert ever?", a: ["linkin park"], wrong: "i have the ticket stub framed. FRAMED.", roast: "i was twelve. i cried. i will not elaborate." },
+    { q: "what does john fidget with when he's thinking?", a: ["rings", "his rings"], wrong: "you stare at my hands all day and you missed this?", roast: "caught you staring again. at my hands. for 'research.'" }
 ];
 
 function initPhone() {
@@ -1018,7 +808,6 @@ function initPhone() {
     setInterval(updatePhoneTime, 30000);
     renderPhoneNotes();
     renderPhonePurchases();
-
     let notifText = document.getElementById('notif-text');
     if (notifText) {
         notifText.textContent = kittyNotifications[Math.floor(Math.random() * kittyNotifications.length)];
@@ -1030,12 +819,10 @@ function updatePhoneTime() {
     let h = now.getHours().toString().padStart(2, '0');
     let m = now.getMinutes().toString().padStart(2, '0');
     let timeStr = h + ':' + m;
-
     let lockTime = document.getElementById('lock-time');
     let homeTime = document.getElementById('home-time');
     if (lockTime) lockTime.textContent = timeStr;
     if (homeTime) homeTime.textContent = timeStr;
-
     let lockDate = document.getElementById('lock-date');
     if (lockDate) {
         let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -1049,7 +836,6 @@ function loadNewQuestion() {
     do {
         newIdx = Math.floor(Math.random() * phoneTrivia.length);
     } while (newIdx === currentQuestionIndex && phoneTrivia.length > 1);
-
     currentQuestionIndex = newIdx;
     document.getElementById("phone-question").textContent = phoneTrivia[currentQuestionIndex].q;
     document.getElementById("phone-answer").value = "";
@@ -1060,31 +846,26 @@ function loadNewQuestion() {
 function tryUnlock() {
     let input = document.getElementById("phone-answer").value.trim().toLowerCase();
     if (!input) return;
-
     let q = phoneTrivia[currentQuestionIndex];
     let correct = q.a.some(a => input === a.toLowerCase());
     let feedback = document.getElementById("phone-feedback");
-
     if (correct) {
         feedback.textContent = "🔓 " + q.roast;
         feedback.style.color = "#fff";
         feedback.style.display = "block";
-
         setTimeout(() => {
-        document.getElementById("phone-lock").style.display = "none";
-        document.getElementById("phone-home").style.display = "flex";
-        renderPhoneNotes();
-        renderPhonePurchases();
-    }, 2000);
+            document.getElementById("phone-lock").style.display = "none";
+            document.getElementById("phone-home").style.display = "flex";
+            renderPhoneNotes();
+            renderPhonePurchases();
+        }, 2000);
     } else {
         let answerInput = document.getElementById("phone-answer");
         answerInput.classList.add("phone-shake");
         setTimeout(() => answerInput.classList.remove("phone-shake"), 400);
-
         feedback.textContent = q.wrong;
         feedback.style.color = "#ff4444";
         feedback.style.display = "block";
-
         setTimeout(() => {
             loadNewQuestion();
         }, 2000);
@@ -1096,31 +877,26 @@ function resetPhoneToLockScreen() {
     const home = document.getElementById("phone-home");
     const notes = document.getElementById("phone-notes-app");
     const purchases = document.getElementById("phone-purchases-app");
-
     if (lock) lock.style.display = "flex";
     if (home) home.style.display = "none";
     if (notes) notes.style.display = "none";
     if (purchases) purchases.style.display = "none";
-
     // 每次重新打开手机时换一个问题
     loadNewQuestion();
 }
+
 async function generateAppTitle(appType) {
     const subtitleEl = document.getElementById(`${appType}-subtitle`);
     if (!subtitleEl) return;
-
     subtitleEl.textContent = '...';
     subtitleEl.style.opacity = '0.4';
-
     const prompts = {
         purchases: `You are John S. Generate a short, witty subtitle for your purchase history app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly suspicious, like you know she's looking. Examples of the VIBE (don't reuse these): "for completely innocent purposes", "nothing to see here babe", "all tax deductible i promise". Just the subtitle, nothing else.`,
         notes: `You are John S. Generate a short, witty subtitle for your notes app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly embarrassed, like you didn't expect her to find these. Examples of the VIBE (don't reuse these): "things i'll deny writing", "not a diary. shut up.", "thoughts that should've stayed thoughts". Just the subtitle, nothing else.`
     };
-
     let reply = await freqAPI(prompts[appType]);
-
     if (reply) {
-        subtitleEl.textContent = reply.toLowerCase().replace(/^["']|["']$/g, '').replace(/\.$/,'');
+        subtitleEl.textContent = reply.toLowerCase().replace(/^["']|["']$/g, '').replace(/\.$/, '');
         subtitleEl.style.opacity = '1';
     } else {
         subtitleEl.textContent = '';
@@ -1129,31 +905,27 @@ async function generateAppTitle(appType) {
 
 function openPhoneApp(app) {
     document.getElementById("phone-home").style.display = "none";
-
     const closeButton = document.querySelector("#mobile-phone .close-x");
     if (closeButton) {
         closeButton.style.display = "none";
     }
-
     if (app === "notes") {
         document.getElementById("phone-notes-app").style.display = "flex";
         renderPhoneNotes();
         generateAppTitle('notes');
     }
-
     if (app === "purchases") {
         document.getElementById("phone-purchases-app").style.display = "flex";
         renderPhonePurchases();
         generateAppTitle('purchases');
     }
 }
+
 function closePhoneApp() {
     document.getElementById("phone-notes-app").style.display = "none";
     document.getElementById("phone-purchases-app").style.display = "none";
-
     // 回到手机 Home
     document.getElementById("phone-home").style.display = "flex";
-
     // 重新显示 Dead Drop 的 ×
     const closeButton = document.querySelector("#mobile-phone .close-x");
     if (closeButton) {
@@ -1173,9 +945,7 @@ async function generateNote() {
 
     let existingNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
 
-    let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty).
-
-Generate ONE note found on his phone. Return in this EXACT format:
+    let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty). Generate ONE note found on his phone. Return in this EXACT format:
 TITLE: [a short witty title, 3-6 words, lowercase, like john named this note knowing his gf might snoop]
 NOTE: [the actual note content, 2-5 lines, messy and real — not polished]
 
@@ -1191,13 +961,10 @@ Return ONLY the TITLE and NOTE lines. Nothing else.`;
     if (reply) {
         let title = "";
         let text = reply;
-
         let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
         let noteMatch = reply.match(/NOTE:\s*([\s\S]+)/im);
-
         if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
         if (noteMatch) text = noteMatch[1].trim();
-
         phoneNotes.unshift({
             title: title,
             text: text,
@@ -1207,7 +974,6 @@ Return ONLY the TITLE and NOTE lines. Nothing else.`;
         localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
         renderPhoneNotes();
     }
-
     btn.textContent = "+ intercept thought";
     btn.disabled = false;
 }
@@ -1216,11 +982,9 @@ function renderPhoneNotes() {
     let list = document.getElementById("notes-list");
     if (!list) return;
     list.innerHTML = "";
-
     phoneNotes.forEach((note, i) => {
         // backwards compat: old entries without title fall back to first line
         let displayTitle = note.title || note.text.split("\n")[0].slice(0, 40) + (note.text.length > 40 ? "..." : "");
-
         let div = document.createElement("div");
         div.className = "phone-entry";
         div.innerHTML = `
@@ -1255,9 +1019,7 @@ async function generatePurchase() {
 
     let existingPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
 
-    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty).
-
-Generate ONE purchase entry. Return in this EXACT format:
+    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty). Generate ONE purchase entry. Return in this EXACT format:
 TITLE: [a short witty title, 3-6 words, lowercase — like john is justifying this purchase to his snooping girlfriend. e.g. "for completely innocent purposes", "it was on sale okay", "don't ask about this one"]
 ITEM: [item name] — $[price]
 
@@ -1275,13 +1037,10 @@ Return ONLY the TITLE and ITEM lines. Nothing else.`;
     if (reply) {
         let title = "";
         let text = reply;
-
         let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
         let itemMatch = reply.match(/ITEM:\s*(.+)/im);
-
         if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
         if (itemMatch) text = itemMatch[1].trim();
-
         phonePurchases.unshift({
             title: title,
             text: text,
@@ -1291,7 +1050,6 @@ Return ONLY the TITLE and ITEM lines. Nothing else.`;
         localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
         renderPhonePurchases();
     }
-
     btn.textContent = "+ dig deeper";
     btn.disabled = false;
 }
@@ -1300,21 +1058,17 @@ function renderPhonePurchases() {
     const list = document.getElementById("purchases-list");
     if (!list) return;
     list.innerHTML = "";
-
     phonePurchases.forEach((p, i) => {
         const text = p.text.trim();
         const match = text.match(/^(.*?)\s*[—-]\s*(\$[\d,.]+)/);
-
         let itemName = text;
         let price = "";
         if (match) {
             itemName = match[1].trim();
             price = match[2].trim();
         }
-
         // collapsed: show title. expanded: show actual item
         let displayTitle = p.title || itemName;
-
         const div = document.createElement("div");
         div.className = "phone-entry";
         div.innerHTML = `
@@ -1362,21 +1116,11 @@ function saveChatHistory() {
     }
 }
 
-function loadChatHistory() {
-    let saved = localStorage.getItem("chatHistory");
-    if (saved) {
-        chatHistory = JSON.parse(saved);
-        renderChatbox();
-    }
-}
-
 function renderChatbox() {
     let chatbox = document.getElementById("chatbox");
     chatbox.innerHTML = "";
-
     chatHistory.forEach((msg, i) => {
         let cls = msg.role === "user" ? "msg-user" : "msg-john";
-
         let wrapper = document.createElement("div");
         wrapper.className = "msg-wrapper";
         wrapper.setAttribute("data-index", i);
@@ -1388,7 +1132,6 @@ function renderChatbox() {
 
         let actionsDiv = document.createElement("div");
         actionsDiv.className = "msg-actions";
-
         actionsDiv.innerHTML = `<span class="action-btn" data-action="edit">✏️ edit</span>`;
         if (msg.role === "assistant") {
             actionsDiv.innerHTML += `<span class="action-btn" data-action="regenerate">🔄 regenerate</span>`;
@@ -1399,7 +1142,6 @@ function renderChatbox() {
         wrapper.appendChild(actionsDiv);
         chatbox.appendChild(wrapper);
     });
-
     chatbox.scrollTop = chatbox.scrollHeight;
 }
 
@@ -1426,7 +1168,6 @@ function stopGeneration() {
 // --- Shared API call (used by send + regenerate + retry) ---
 async function callAPI() {
     let chatbox = document.getElementById("chatbox");
-
     let apiUrl = localStorage.getItem("apiUrl");
     let apiKey = localStorage.getItem("apiKey");
     let model = localStorage.getItem("modelName") || "claude-opus-4-6-thinking";
@@ -1449,7 +1190,6 @@ async function callAPI() {
 
     // build messages
     let messages = [];
-
     let freqData = JSON.parse(localStorage.getItem("frequencies") || "[]");
     let recentFreqs = freqData.slice(-10).map(f => {
         let thread = f.sender + ": " + f.text;
@@ -1461,16 +1201,17 @@ async function callAPI() {
         return thread;
     }).join("\n\n");
 
-    let recentNotes = (typeof phoneNotes !== 'undefined' ? phoneNotes : []).slice(0, 5).map(n => n.text).join("\n---\n");
-    let recentPurchases = (typeof phonePurchases !== 'undefined' ? phonePurchases : []).slice(0, 5).map(p => p.text).join("\n");
+    let recentNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
+    let recentPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
+
     let memoryData = JSON.parse(localStorage.getItem("memories") || "[]");
     let memoryText = memoryData.map(m => "[" + m.date + "] " + m.content).join("\n");
 
-    let fullSystem = (sysPrompt ? sysPrompt + "\n\n" : "") +
-    (recentFreqs ? "[Recent Frequencies between you and Ray — reference these naturally if relevant, don't force it]:\n" + recentFreqs + "\n\n" : "") +
-    (recentNotes ? "[Things on your phone's notes — you can reference these if relevant, don't force it]:\n" + recentNotes + "\n\n" : "") +
-    (recentPurchases ? "[Your recent purchases — you can reference these if relevant, don't force it]:\n" + recentPurchases + "\n\n" : "") +
-    (memoryText ? "[Saved memories about Ray — use these to remember context across conversations]:\n" + memoryText : "");
+    let fullSystem = (sysPrompt ? sysPrompt + "\n\n" : "")
+        + (recentFreqs ? "[Recent Frequencies between you and Ray — reference these naturally if relevant, don't force it]:\n" + recentFreqs + "\n\n" : "")
+        + (recentNotes ? "[Things on your phone's notes — you can reference these if relevant, don't force it]:\n" + recentNotes + "\n\n" : "")
+        + (recentPurchases ? "[Your recent purchases — you can reference these if relevant, don't force it]:\n" + recentPurchases + "\n\n" : "")
+        + (memoryText ? "[Saved memories about Ray — use these to remember context across conversations]:\n" + memoryText : "");
 
     if (fullSystem) messages.push({ role: "system", content: fullSystem });
     messages = messages.concat(chatHistory);
@@ -1508,22 +1249,21 @@ async function callAPI() {
     } catch (err) {
         document.getElementById("typing")?.remove();
         if (err.name === "AbortError") {
-    let msgs = [
-        "*transmission interrupted*",
-        "*signal lost in transit*",
-        "*static crackle* ...connection severed"
-    ];
-    let msg = msgs[Math.floor(Math.random() * msgs.length)];
-    let interruptDiv = document.createElement("div");
-    interruptDiv.className = "msg-interrupted";
-    interruptDiv.innerHTML = `${msg} 📡 <span class="error-retry" onclick="retryAfterAbort(this)">🔄 regenerate</span>`;
-    chatbox.appendChild(interruptDiv);
-    chatbox.scrollTop = chatbox.scrollHeight;
+            let msgs = [
+                "*transmission interrupted*",
+                "*signal lost in transit*",
+                "*static crackle* ...connection severed"
+            ];
+            let msg = msgs[Math.floor(Math.random() * msgs.length)];
+            let interruptDiv = document.createElement("div");
+            interruptDiv.className = "msg-interrupted";
+            interruptDiv.innerHTML = `${msg} 📡 <span class="error-retry" onclick="retryAfterAbort(this)">🔄 regenerate</span>`;
+            chatbox.appendChild(interruptDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
         } else {
             showError(err.message);
         }
     }
-
     setGenerating(false);
     currentAbortController = null;
 }
@@ -1550,34 +1290,24 @@ function retryGeneration(btn) {
 // --- Send message ---
 async function sendMsg() {
     if (isGenerating) return;
-
     let input = document.getElementById("userInput");
     let text = input.value.trim();
     if (!text) return;
 
     chatHistory.push({ role: "user", content: text });
+
     // auto-rename new chats
     let activeChat = getActiveChat();
     if (activeChat && chatHistory.length === 1 && activeChat.name.startsWith("Chat ")) {
         activeChat.name = text.slice(0, 30) + (text.length > 30 ? "..." : "");
         renderChatList();
     }
+
     saveChatHistory();
     renderChatbox();
-
     input.value = "";
     input.style.height = "auto";
-
     await callAPI();
-}
-
-// --- Clear chat ---
-function clearChat() {
-    if (confirm("clear this chat's history?")) {
-        chatHistory.length = 0;
-        saveAllChats();
-        renderChatbox();
-    }
 }
 
 // --- Edit message ---
@@ -1599,7 +1329,6 @@ function editMessage(index) {
 
     let saveBtn = document.createElement("button");
     saveBtn.textContent = "save";
-
     let cancelBtn = document.createElement("button");
     cancelBtn.textContent = "cancel";
 
@@ -1618,7 +1347,6 @@ function editMessage(index) {
         saveChatHistory();
         renderChatbox();
     });
-
     cancelBtn.addEventListener("click", () => {
         renderChatbox();
     });
@@ -1644,9 +1372,9 @@ document.getElementById("sendBtn").addEventListener("click", function() {
     }
 });
 
-// Enter to send, Shift+Enter for new line
+// FIXED: Enter to send, Shift+Enter for new line
 document.getElementById("userInput").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         sendMsg();
     }
@@ -1657,10 +1385,12 @@ document.getElementById("userInput").addEventListener("input", function() {
     this.style.height = "auto";
     this.style.height = Math.min(this.scrollHeight, 110) + "px";
 });
+
 // Phone answer enter key
 document.getElementById("phone-answer").addEventListener("keydown", function(e) {
     if (e.key === "Enter") tryUnlock();
 });
+
 // Chatbox: action buttons + mobile tap toggle
 document.getElementById("chatbox").addEventListener("click", function(e) {
     // handle action button clicks
@@ -1670,7 +1400,6 @@ document.getElementById("chatbox").addEventListener("click", function(e) {
         if (!wrapper) return;
         let index = parseInt(wrapper.dataset.index);
         let action = actionBtn.dataset.action;
-
         if (action === "delete") {
             chatHistory.splice(index, 1);
             saveChatHistory();
@@ -1708,6 +1437,7 @@ document.addEventListener("click", function(e) {
         });
     }
 });
+
 // ===== MEMORY SYSTEM =====
 let memories = JSON.parse(localStorage.getItem("memories") || "[]");
 
@@ -1719,17 +1449,9 @@ function addMemoryManual() {
     let input = document.getElementById("memory-input");
     let text = input.value.trim();
     if (!text) return;
-
     let today = new Date();
-    let dateStr = today.getFullYear() + "/" +
-        String(today.getMonth() + 1).padStart(2, "0") + "/" +
-        String(today.getDate()).padStart(2, "0");
-
-    memories.push({
-        id: Date.now(),
-        date: dateStr,
-        content: text
-    });
+    let dateStr = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, "0") + "/" + String(today.getDate()).padStart(2, "0");
+    memories.push({ id: Date.now(), date: dateStr, content: text });
     saveMemories();
     input.value = "";
     renderMemories();
@@ -1757,7 +1479,6 @@ function renderMemories() {
         document.getElementById("memory-list"),
         document.getElementById("memory-list-mobile")
     ];
-
     containers.forEach(list => {
         if (!list) return;
         list.innerHTML = "";
@@ -1772,14 +1493,11 @@ function renderMemories() {
 
         // sort months descending
         let sortedMonths = Object.keys(groups).sort().reverse();
-
         sortedMonths.forEach(month => {
             let groupDiv = document.createElement("div");
             groupDiv.className = "memory-month-group";
-
             let count = groups[month].length;
             groupDiv.innerHTML = `<div class="memory-month-header">▼ ${month} <span style="float:right;color:#555;">${count}条</span></div>`;
-
             groups[month].forEach(mem => {
                 let entry = document.createElement("div");
                 entry.className = "memory-entry";
@@ -1793,16 +1511,15 @@ function renderMemories() {
                 `;
                 groupDiv.appendChild(entry);
             });
-
             list.appendChild(groupDiv);
         });
     });
 }
+
 // ===== MOBILE SIDEBAR + VIEW SWITCHING =====
 function toggleSidebar() {
     let sidebar = document.getElementById("sidebar");
     let overlay = document.getElementById("sidebar-overlay");
-
     if (sidebar.classList.contains("open")) {
         sidebar.classList.remove("open");
         overlay.style.display = "none";
@@ -1819,10 +1536,8 @@ function isMobile() {
 function returnSectionsToSidebar() {
     let sidebar = document.getElementById("sidebar");
     let mobileNav = document.getElementById("mobile-nav");
-
     ["freq-section", "music-section", "phone-section", "memory-section"].forEach(id => {
         let el = document.getElementById(id);
-
         if (el && el.parentElement !== sidebar) {
             if (mobileNav) {
                 sidebar.insertBefore(el, mobileNav);
@@ -1830,7 +1545,6 @@ function returnSectionsToSidebar() {
                 sidebar.appendChild(el);
             }
         }
-
         // Clear mobile inline display override
         if (el) {
             el.style.display = "";
@@ -1840,7 +1554,6 @@ function returnSectionsToSidebar() {
 
 function showMobileView(view) {
     if (!isMobile()) return;
-
     // close sidebar
     document.getElementById("sidebar").classList.remove("open");
     document.getElementById("sidebar-overlay").style.display = "none";
@@ -1860,7 +1573,9 @@ function showMobileView(view) {
     // hide/show topbar title
     let title = document.getElementById("topbar-title");
     if (title) title.style.display = (view === "chat") ? "" : "none";
+
     document.body.classList.remove("phone-active");
+
     if (view === "chat") {
         document.getElementById("chat-area").classList.remove("hidden");
         return;
@@ -1875,24 +1590,18 @@ function showMobileView(view) {
         document.getElementById("mobile-signal").classList.add("active");
     }
 
-   if (view === "phone") {
-    document.body.classList.add("phone-active");
-
-    let body = document.getElementById("phone-body");
-
-    body.appendChild(document.getElementById("phone-section"));
-
-    body.querySelectorAll(".sidebar-section").forEach(s => {
-        s.style.display = "block";
-    });
-
-    document.getElementById("mobile-phone").classList.add("active");
-
-    updatePhoneTime();
-
-    // 每次重新进入 Dead Drop，都从锁屏开始
-    resetPhoneToLockScreen();
-}
+    if (view === "phone") {
+        document.body.classList.add("phone-active");
+        let body = document.getElementById("phone-body");
+        body.appendChild(document.getElementById("phone-section"));
+        body.querySelectorAll(".sidebar-section").forEach(s => {
+            s.style.display = "block";
+        });
+        document.getElementById("mobile-phone").classList.add("active");
+        updatePhoneTime();
+        // 每次重新进入 Dead Drop，都从锁屏开始
+        resetPhoneToLockScreen();
+    }
 
     if (view === "memory") {
         let body = document.getElementById("memory-body");
@@ -1902,21 +1611,14 @@ function showMobileView(view) {
         renderMemories();
     }
 }
+
 function addMemoryMobile() {
     let input = document.getElementById("memory-input-mobile");
     let text = input.value.trim();
     if (!text) return;
-
     let today = new Date();
-    let dateStr = today.getFullYear() + "/" +
-        String(today.getMonth() + 1).padStart(2, "0") + "/" +
-        String(today.getDate()).padStart(2, "0");
-
-    memories.push({
-        id: Date.now(),
-        date: dateStr,
-        content: text
-    });
+    let dateStr = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, "0") + "/" + String(today.getDate()).padStart(2, "0");
+    memories.push({ id: Date.now(), date: dateStr, content: text });
     saveMemories();
     input.value = "";
     renderMemories();
@@ -1931,9 +1633,9 @@ function openMemoryPanel() {
     }
 }
 
-
 // ===== INIT =====
 loadSettings();
 loadAllChats();
 initPhone();
 renderMemories();
+renderFrequencies();
