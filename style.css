@@ -953,6 +953,10 @@ body {
     outline: none;
 }
 #memory-input:focus { border-color: #7c3aed; }
+
+/* 月份折叠状态 */
+.memory-month-group.collapsed .memory-entry { display: none; }
+
 #memory-add-btn {
     background: #1a1a1a;
     border: 1px solid #555;
@@ -1158,9 +1162,11 @@ body {
     /* hide topbar right buttons on mobile */
     #topbar-btns { display: none; }
 
-    /* prevent iOS zoom on input focus */
-    #userInput, #memory-input, .freq-reply-input, #freq-input,
-    .phone-answer-row input, #phone-answer { font-size: 16px !important; }
+    /* smaller input fonts on mobile (zoom prevention handled by viewport meta) */
+    #userInput { font-size: 12px !important; }
+    #memory-input, #memory-input-mobile { font-size: 10px !important; }
+    #freq-input { font-size: 10px !important; }
+    .freq-reply-input, #phone-answer, .phone-answer-row input { font-size: 10px !important; }
 
     /* hide section h2 inside mobile views — header already shows title */
     .mobile-view-body .sidebar-section > h2 { display: none; }
