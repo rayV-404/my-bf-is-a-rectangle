@@ -998,20 +998,37 @@ function resetPhoneToLockScreen() {
 }
 
 function openPhoneApp(app) {
+    // 隐藏 Home
     document.getElementById("phone-home").style.display = "none";
+
+    // 隐藏 Dead Drop 外层的 ×
+    const closeButton = document.querySelector("#mobile-phone .close-x");
+    if (closeButton) {
+        closeButton.style.display = "none";
+    }
+
     if (app === "notes") {
         document.getElementById("phone-notes-app").style.display = "flex";
         renderPhoneNotes();
-    } else if (app === "purchases") {
+    }
+
+    if (app === "purchases") {
         document.getElementById("phone-purchases-app").style.display = "flex";
         renderPhonePurchases();
     }
 }
-
 function closePhoneApp() {
     document.getElementById("phone-notes-app").style.display = "none";
     document.getElementById("phone-purchases-app").style.display = "none";
+
+    // 回到手机 Home
     document.getElementById("phone-home").style.display = "flex";
+
+    // 重新显示 Dead Drop 的 ×
+    const closeButton = document.querySelector("#mobile-phone .close-x");
+    if (closeButton) {
+        closeButton.style.display = "";
+    }
 }
 
 // --- PHONE NOTES ---
