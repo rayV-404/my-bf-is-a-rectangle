@@ -784,19 +784,34 @@ body {
 
 .export-import-btn:hover { border-color: #7c3aed; }
 
-/* --- JOHN'S PHONE --- */
+/* ═══════════════════════════════════════
+   JOHN'S PHONE — MATTE BLACK / AMETHYST
+   ═══════════════════════════════════════ */
+
 #phone-section { border: none; padding: 0; }
 #phone-section > h2 { padding: 12px; margin-bottom: 0; }
 
+/* --- DEVICE FRAME --- */
 .phone-device {
     position: relative;
     width: 260px;
     margin: 0 auto 12px;
     background: #000;
     border-radius: 28px;
-    border: 2px solid #1a1a1a;
+    border: 1.5px solid #1a1a1a;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.6), inset 0 0 1px #222;
+    box-shadow:
+        0 4px 30px rgba(0, 0, 0, 0.7),
+        0 0 40px rgba(124, 58, 237, 0.06),
+        inset 0 0 1px rgba(124, 58, 237, 0.1);
+    transition: box-shadow 0.4s ease;
+}
+
+.phone-device:hover {
+    box-shadow:
+        0 4px 30px rgba(0, 0, 0, 0.7),
+        0 0 50px rgba(124, 58, 237, 0.1),
+        inset 0 0 1px rgba(124, 58, 237, 0.15);
 }
 
 .phone-notch {
@@ -807,7 +822,7 @@ body {
     margin: 0 auto;
     position: relative;
     z-index: 10;
-    border: 1px solid #111;
+    border: 1px solid #0a0a0a;
     border-top: none;
 }
 
@@ -816,46 +831,67 @@ body {
     display: flex;
     flex-direction: column;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #000;
 }
 
+/* --- STATUS BAR --- */
 .phone-status {
     display: flex;
     justify-content: space-between;
     padding: 2px 16px 4px;
     font-size: 8px;
-    color: #555;
+    color: #333;
 }
 
-.phone-carrier { letter-spacing: 1px; }
+.phone-carrier {
+    letter-spacing: 1px;
+    color: rgba(124, 58, 237, 0.35);
+}
 
-/*---- LOCK SCREEN ---- */
+/* ═══════ LOCK SCREEN ═══════ */
 #phone-lock {
-    background: linear-gradient(160deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%);
+    background:
+        radial-gradient(ellipse at 30% 20%, rgba(124, 58, 237, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 80%, rgba(88, 28, 135, 0.03) 0%, transparent 50%),
+        linear-gradient(180deg, #050505 0%, #080808 40%, #060606 100%);
 }
 
-.lock-clock { text-align: center; padding: 28px 0 16px; }
+.lock-clock {
+    text-align: center;
+    padding: 28px 0 16px;
+}
 
 .lock-time {
     font-size: 52px;
-    font-weight: 200;
-    color: #fff;
-    letter-spacing: 3px;
+    font-weight: 100;
+    color: #e8e8e8;
+    letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(124, 58, 237, 0.08);
 }
 
 .lock-date {
     font-size: 10px;
-    color: #555;
+    color: #3a3a3a;
     margin-top: 4px;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    font-weight: 300;
 }
 
+/* --- LOCK NOTIFICATIONS --- */
 .lock-notification {
     margin: 10px 14px;
-    background: rgba(28, 28, 30, 0.85);
-    backdrop-filter: blur(20px);
-    border-radius: 14px;
-    padding: 11px 14px;
-    border: 1px solid rgba(255,255,255,0.04);
+    background: rgba(12, 12, 14, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 16px;
+    padding: 12px 14px;
+    border: 1px solid rgba(124, 58, 237, 0.06);
+    transition: border-color 0.3s, background 0.3s;
+}
+
+.lock-notification:hover {
+    border-color: rgba(124, 58, 237, 0.15);
+    background: rgba(14, 14, 18, 0.9);
 }
 
 .notif-header {
@@ -864,22 +900,35 @@ body {
     margin-bottom: 4px;
 }
 
-.notif-app { font-size: 8px; color: #666; font-weight: 600; }
-.notif-when { font-size: 7px; color: #444; }
+.notif-app {
+    font-size: 8px;
+    color: rgba(124, 58, 237, 0.55);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.notif-when {
+    font-size: 7px;
+    color: #2a2a2a;
+}
 
 .notif-body strong {
     font-size: 10px;
-    color: #fff;
+    color: #ccc;
     display: block;
     margin-bottom: 2px;
+    font-weight: 500;
 }
 
 .notif-body p {
     font-size: 10px;
-    color: #999;
+    color: #555;
     margin: 0;
+    line-height: 1.5;
 }
 
+/* --- LOCK QUESTION --- */
 .lock-question-area {
     margin-top: auto;
     padding: 16px;
@@ -888,46 +937,58 @@ body {
 
 .lock-label {
     font-size: 8px;
-    color: #2a2a2a;
+    color: #1a1a1a;
     font-style: italic;
-    margin-bottom: 12px;font-family: 'Press Start 2P', monospace;
+    margin-bottom: 12px;
+    font-family: 'Press Start 2P', monospace;
 }
 
 .lock-q {
     font-size: 10px;
-    color: #888;
+    color: #666;
     margin-bottom: 12px;
-    line-height: 1.6;
+    line-height: 1.7;
+    font-weight: 300;
 }
 
 .phone-answer-row { display: flex; gap: 6px; }
 
 .phone-answer-row input {
     flex: 1;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid #1a1a1a;
-    color: #fff;
+    background: rgba(124, 58, 237, 0.03);
+    border: 1px solid #151515;
+    color: #ddd;
     padding: 10px 12px;
     font-family: -apple-system, sans-serif;
     font-size: 11px;
     outline: none;
     border-radius: 10px;
+    transition: border-color 0.25s, background 0.25s;
 }
 
-.phone-answer-row input:focus { border-color: #333; }
-.phone-answer-row input::placeholder { color: #2a2a2a; }
+.phone-answer-row input:focus {
+    border-color: rgba(124, 58, 237, 0.3);
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.phone-answer-row input::placeholder { color: #1e1e1e; }
 
 .phone-answer-row button {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid #1a1a1a;
-    color: #fff;
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px solid #151515;
+    color: #888;
     padding: 10px 14px;
     font-size: 12px;
     cursor: pointer;
     border-radius: 10px;
+    transition: all 0.25s;
 }
 
-.phone-answer-row button:hover { border-color: #333; }
+.phone-answer-row button:hover {
+    border-color: rgba(124, 58, 237, 0.3);
+    color: #c084fc;
+    background: rgba(124, 58, 237, 0.1);
+}
 
 #phone-feedback {
     margin-top: 10px;
@@ -946,18 +1007,27 @@ body {
 
 .phone-shake { animation: phone-shake 0.4s ease; }
 
-/* ---- HOME SCREEN ---- */
-#phone-home { background: #000; }
+/* ═══════ HOME SCREEN ═══════ */
+#phone-home {
+    background:
+        radial-gradient(ellipse at 50% 90%, rgba(124, 58, 237, 0.03) 0%, transparent 50%),
+        #000;
+}
 
-.home-clock { text-align: center; padding: 20px 0 28px; }
+.home-clock {
+    text-align: center;
+    padding: 20px 0 28px;
+}
 
 .home-time {
     font-size: 36px;
-    font-weight: 200;
-    color: #fff;
-    letter-spacing: 2px;
+    font-weight: 100;
+    color: #e0e0e0;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(124, 58, 237, 0.06);
 }
 
+/* --- APP GRID --- */
 .home-apps {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -971,107 +1041,151 @@ body {
 .app-icon-img {
     width: 44px;
     height: 44px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
+    background: rgba(124, 58, 237, 0.04);
+    border-radius: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
     margin: 0 auto 4px;
-    border: 1px solid rgba(255,255,255,0.04);
-    transition: transform 0.15s, background 0.15s;
+    border: 1px solid rgba(124, 58, 237, 0.08);
+    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 .app-icon:hover .app-icon-img {
-    transform: scale(1.08);
-    background: rgba(255,255,255,0.09);
+    transform: scale(1.1);
+    background: rgba(124, 58, 237, 0.1);
+    border-color: rgba(124, 58, 237, 0.25);
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.1);
 }
 
-.app-fake { opacity: 0.25; cursor: default; }
-.app-fake:hover .app-icon-img { transform: none; background: rgba(255,255,255,0.05); }
+.app-fake { opacity: 0.2; cursor: default; }
+.app-fake:hover .app-icon-img {
+    transform: none;
+    background: rgba(124, 58, 237, 0.04);
+    border-color: rgba(124, 58, 237, 0.08);
+    box-shadow: none;
+}
 
-.app-icon-label { font-size: 7px; color: #666; margin-top: 2px; }
+.app-icon-label {
+    font-size: 7px;
+    color: #444;
+    margin-top: 2px;
+    transition: color 0.2s;
+}
 
+.app-icon:hover .app-icon-label { color: #888; }
+.app-fake:hover .app-icon-label { color: #444; }
+
+/* --- DOCK --- */
 .home-dock {
     display: flex;
     justify-content: center;
     gap: 18px;
     padding: 14px 0;
     margin: 0 20px;
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-top: 1px solid rgba(124, 58, 237, 0.06);
 }
 
 .dock-icon {
     width: 38px;
     height: 38px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(124, 58, 237, 0.03);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
-    opacity: 0.25;
+    opacity: 0.2;
 }
 
-/* ---- APP SCREENS ---- */
+/* --- HOME BAR --- */
+.phone-home-bar {
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+    border-radius: 2px;
+    margin: 8px auto 10px;
+}
+
+/* ═══════ APP SCREENS (shared) ═══════ */
 .app-header {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid rgba(124, 58, 237, 0.06);
     font-size: 11px;
-    color: #fff;
+    color: #ccc;
+    background: rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .app-back {
     background: none;
     border: none;
-    color: #555;
+    color: rgba(124, 58, 237, 0.5);
     font-size: 16px;
     cursor: pointer;
     padding: 4px 8px;
-    transition: color 0.15s;
+    transition: color 0.2s;
 }
 
-.app-back:hover { color: #fff; }
+.app-back:hover { color: #c084fc; }
 
 .app-body {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
     max-height: 400px;
+    background: #000;
 }
 
+/* --- GENERATE BUTTON --- */
 .phone-gen-btn {
     width: 100%;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid #1a1a1a;
-    color: #444;
+    background: rgba(124, 58, 237, 0.04);
+    border: 1px dashed rgba(124, 58, 237, 0.12);
+    color: #3a3a3a;
     padding: 10px;
     font-family: -apple-system, sans-serif;
     font-size: 10px;
     cursor: pointer;
-    margin-bottom: 8px;
-    border-radius: 10px;
-    transition: all 0.2s;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    transition: all 0.25s;
+    letter-spacing: 0.3px;
 }
 
-.phone-gen-btn:hover { border-color: #333; color: #ccc; }
+.phone-gen-btn:hover {
+    border-color: rgba(124, 58, 237, 0.35);
+    color: #c084fc;
+    background: rgba(124, 58, 237, 0.08);
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.06);
+}
 
+/* --- PHONE ENTRIES (Notes / Purchases shared) --- */
 .phone-entry {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid #1a1a1a;
-    border-radius: 10px;
-    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    margin-bottom: 8px;
     overflow: hidden;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+
+.phone-entry:hover {
+    background: rgba(124, 58, 237, 0.04);
+    border-color: rgba(124, 58, 237, 0.15);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.05);
 }
 
 .phone-entry-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 12px;
+    padding: 12px 14px;
     cursor: pointer;
 }
 
@@ -1089,27 +1203,107 @@ body {
     font-size: 14px;
     cursor: pointer;
     margin-left: 8px;
-    transition: color 0.15s;
+    transition: color 0.2s;
 }
 
 .entry-delete:hover { color: #ff4444; }
 
 .phone-entry-content {
-    padding: 8px 12px 10px;
-    border-top: 1px solid #1a1a1a;
+    padding: 10px 14px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
     font-size: 10px;
-    color: #999;
-    line-height: 1.6;
+    color: #777;
+    line-height: 1.7;
+    background: rgba(0, 0, 0, 0.3);
 }
 
-.entry-time { font-size: 8px; color: #2a2a2a; margin-top: 6px; }
+.entry-time {
+    font-size: 8px;
+    color: rgba(124, 58, 237, 0.25);
+    margin-top: 6px;
+}
 
-.phone-home-bar {
-    width: 100px;
-    height: 4px;
-    background: #2a2a2a;
-    border-radius: 2px;
-    margin: 8px auto 10px;
+/* --- Purchases-specific entry overrides --- */
+#phone-purchases-app .phone-gen-btn {
+    background: rgba(124, 58, 237, 0.04);
+    border: 1px dashed rgba(124, 58, 237, 0.15);
+}
+
+#phone-purchases-app .phone-gen-btn:hover {
+    border-color: rgba(124, 58, 237, 0.4);
+    background: rgba(124, 58, 237, 0.08);
+}
+
+/* ═══════ PURCHASE CARDS: MOBILE ═══════ */
+@media (max-width: 768px) {
+
+    body.phone-active #mobile-phone .phone-entry {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        transition: border-color 0.3s, background 0.3s;
+    }
+
+    body.phone-active #mobile-phone .phone-entry:active {
+        border-color: rgba(124, 58, 237, 0.3);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    body.phone-active #mobile-phone .phone-entry-header {
+        padding: 0;
+    }
+
+    body.phone-active #mobile-phone .entry-delete {
+        display: none;
+    }
+
+    body.phone-active #mobile-phone .purchase-icon {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    body.phone-active #mobile-phone .purchase-name {
+        font-size: 13px;
+        color: #ccc;
+    }
+
+    body.phone-active #mobile-phone .purchase-price {
+        font-size: 14px;
+    }
+
+    body.phone-active #mobile-phone #phone-purchases-app {
+        height: 100%;
+        background: #000;
+    }
+
+    body.phone-active #mobile-phone #phone-purchases-app .app-body {
+        flex: 1;
+        max-height: none;
+        overflow-y: auto;
+        padding: 12px 16px 30px;
+        background: #000;
+    }
+
+    body.phone-active #mobile-phone #phone-purchases-app .app-header {
+        background: #000;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+    }
+
+    body.phone-active #mobile-phone .app-header {
+        background: #000;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+    }
+
+    body.phone-active #mobile-phone .app-body {
+        background: #000;
+    }
 }
 
 /* --- HAMBURGER --- */
@@ -1460,8 +1654,35 @@ body {
     .phone-home-bar { display: none; }
 
     .app-body {
-        max-height: calc(100vh - 200px);
-    }
+    flex: 1;
+    min-height: 0;
+
+    max-height: none;
+
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+body.phone-active #mobile-phone .phone-screen {
+    display: flex;
+    flex-direction: column;
+
+    height: 100%;
+    min-height: 0;
+}
+
+body.phone-active #mobile-phone .phone-screen .app-body {
+    flex: 1;
+    min-height: 0;
+
+    max-height: none;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    padding-bottom: 30px;
+}
       #new-chat-btn {
         padding: 14px;
         font-size: 10px;
@@ -1702,120 +1923,6 @@ body {
     }
 }
 
-/* --- PURCHASE CARDS --- */
-
-.purchase-card {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.purchase-icon {
-    flex: 0 0 52px;
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(124, 58, 237, 0.08);
-    border: 1px solid rgba(124, 58, 237, 0.18);
-    border-radius: 14px;
-    font-size: 22px;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.phone-entry:hover .purchase-icon {
-    border-color: rgba(124, 58, 237, 0.4);
-    box-shadow: 0 0 12px rgba(124, 58, 237, 0.15);
-}
-
-.purchase-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.purchase-name {
-    color: #ccc;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.purchase-price {
-    color: #c084fc;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-/* --- PURCHASE CARDS --- */
-
-/* App screens need an explicit dark bg */
-#phone-purchases-app .app-body {
-    background: #000;
-}
-
-.purchase-card {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.purchase-icon {
-    flex: 0 0 52px;
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(124, 58, 237, 0.1);
-    border: 1px solid rgba(124, 58, 237, 0.2);
-    border-radius: 14px;
-    font-size: 22px;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.phone-entry:hover .purchase-icon {
-    border-color: rgba(124, 58, 237, 0.45);
-    box-shadow: 0 0 14px rgba(124, 58, 237, 0.18);
-}
-
-.purchase-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.purchase-name {
-    color: #ccc;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.purchase-price {
-    color: #c084fc;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
 
 /* Desktop phone-entry override for purchases */
 #phone-purchases-app .phone-entry {
@@ -1861,72 +1968,4 @@ body {
     border-color: rgba(124, 58, 237, 0.45);
     color: #c084fc;
     background: rgba(124, 58, 237, 0.1);
-}
-
-/* --- PURCHASE CARDS: MOBILE FULL-SCREEN --- */
-
-@media (max-width: 768px) {
-
-    body.phone-active #mobile-phone .phone-entry {
-        width: 100%;
-        margin-bottom: 10px;
-        padding: 16px;
-        background: rgba(255, 255, 255, 0.025);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
-        box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        transition: border-color 0.3s;
-    }
-
-    body.phone-active #mobile-phone .phone-entry:active {
-        border-color: rgba(124, 58, 237, 0.35);
-        background: rgba(124, 58, 237, 0.05);
-    }
-
-    body.phone-active #mobile-phone .phone-entry-header {
-        padding: 0;
-    }
-
-    body.phone-active #mobile-phone .entry-delete {
-        display: none;
-    }
-
-    body.phone-active #mobile-phone .phone-entry-content {
-        display: none !important;
-    }
-
-    body.phone-active #mobile-phone .purchase-icon {
-        flex: 0 0 48px;
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-    }
-
-    body.phone-active #mobile-phone .purchase-name {
-        font-size: 13px;
-        color: #ddd;
-    }
-
-    body.phone-active #mobile-phone .purchase-price {
-        font-size: 14px;
-    }
-
-    body.phone-active #mobile-phone #phone-purchases-app {
-        height: 100%;
-        background: #000;
-    }
-
-    body.phone-active #mobile-phone #phone-purchases-app .app-body {
-        flex: 1;
-        max-height: none;
-        overflow-y: auto;
-        padding: 12px 16px 30px;
-        background: #000;
-    }
-
-    body.phone-active #mobile-phone #phone-purchases-app .app-header {
-        background: #000;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    }
 }
