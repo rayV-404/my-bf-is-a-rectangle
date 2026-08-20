@@ -15,8 +15,54 @@ function saveSettings() {
     localStorage.setItem("maxTokens", document.getElementById("maxTokens").value);
     localStorage.setItem("temperature", document.getElementById("temperature").value);
     localStorage.setItem("sysPrompt", document.getElementById("sysPrompt").value);
+    let chat = getActiveChat();
+    if (chat) {
+        chat.instruction = document.getElementById("chatInstruction").value;
+        saveAllChats();
+    }
     document.getElementById("settings-overlay").classList.remove("open");
     renderPresetDropdown();
+}
+// ===== FONT SYSTEM =====
+function applyFont() {
+    let font = localStorage.getItem("appFont") || "Press Start 2P";
+    let size = localStorage.getItem("appFontSize") || "14";
+    let tag = document.getElementById("dynamic-font-style");
+    if (!tag) {
+        tag = document.createElement("style");
+        tag.id = "dynamic-font-style";
+        document.head.appendChild(tag);
+    }
+    tag.textContent = `
+        * { font-family: '${font}', 'DotGothic16', 'Press Start 2P', monospace !important; }
+        .phone-screen, .phone-screen * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+        }
+        #chatbox, #userInput, .msg-user, .msg-john, .msg-think-body,
+        .freq-text, .freq-reply, .memory-entry, #freq-input,
+        .sidebar-placeholder, .msg-interrupted {
+            font-size: ${size}px !important;
+            line-height: 1.7;
+        }
+    `;
+}
+
+function initFontControls() {
+    let select = document.getElementById("fontSelect");
+    let range = document.getElementById("fontSizeRange");
+    let label = document.getElementById("fontSizeLabel");
+    select.value = localStorage.getItem("appFont") || "Press Start 2P";
+    range.value = localStorage.getItem("appFontSize") || "14";
+    label.textContent = range.value + "px";
+    select.addEventListener("change", function() {
+        localStorage.setItem("appFont", this.value);
+        applyFont();
+    });
+    range.addEventListener("input", function() {
+        localStorage.setItem("appFontSize", this.value);
+        label.textContent = this.value + "px";
+        applyFont();
+    });
 }
 
 // ===== API PRESETS =====
@@ -63,7 +109,7 @@ function deletePreset() {
     renderPresetDropdown();
 }
 
-document.getElementById("presetSelect").addEventListener("change", function() {
+document.getElementById("presetSelect")?.addEventListener("change", function() {
     let idx = this.value;
     if (idx === "") return;
     let p = apiPresets[idx];
@@ -134,7 +180,11 @@ function exportData() {
         maxTokens: localStorage.getItem("maxTokens") || "",
         temperature: localStorage.getItem("temperature") || "",
         sysPrompt: localStorage.getItem("sysPrompt") || "",
-        apiPresets: JSON.parse(localStorage.getItem("apiPresets") || "[]")
+        apiPresets: JSON.parse(localStorage.getItem("apiPresets") || "[]"),
+        worldbooks: JSON.parse(localStorage.getItem("worldbooks") || "[]"),
+        appFont: localStorage.getItem("appFont") || "Press Start 2P",
+        appFontSize: localStorage.getItem("appFontSize") || "14",
+
     };
     let blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     let url = URL.createObjectURL(blob);
@@ -145,11 +195,11 @@ function exportData() {
     URL.revokeObjectURL(url);
 }
 
-document.getElementById("import-btn").addEventListener("click", () => {
+document.getElementById("import-btn")?.addEventListener("click", () => {
     document.getElementById("importFile").click();
 });
 
-document.getElementById("importFile").addEventListener("change", function() {
+document.getElementById("importFile")?.addEventListener("change", function() {
     let file = this.files[0];
     if (!file) return;
     let reader = new FileReader();
@@ -172,6 +222,10 @@ document.getElementById("importFile").addEventListener("change", function() {
             if (data.temperature) localStorage.setItem("temperature", data.temperature);
             if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
             if (data.apiPresets) localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
+            if (data.worldbooks) localStorage.setItem("worldbooks", JSON.stringify(data.worldbooks));
+            if (data.appFont) localStorage.setItem("appFont", data.appFont);
+            if (data.appFontSize) localStorage.setItem("appFontSize", data.appFontSize);
+
             location.reload();
         } catch (err) {
             alert("invalid file: " + err.message);
@@ -181,7 +235,7 @@ document.getElementById("importFile").addEventListener("change", function() {
     this.value = "";
 });
 
-document.getElementById("modelSelect").addEventListener("change", function() {
+document.getElementById("modelSelect")?.addEventListener("change", function() {
     if (this.value) {
         document.getElementById("modelName").value = this.value;
     }
@@ -189,52 +243,74 @@ document.getElementById("modelSelect").addEventListener("change", function() {
 
 function openSettings() {
     document.getElementById("settings-overlay").classList.add("open");
+    let chat = getActiveChat();
+    document.getElementById("chatInstruction").value = (chat && chat.instruction) || "";
+    document.getElementById("chat-instruction-name").textContent = chat ? chat.name : "";
+    renderWorldbookList();
 }
-
-document.getElementById("settings-save").addEventListener("click", saveSettings);
-document.getElementById("settings-close").addEventListener("click", () => {
-    document.getElementById("settings-overlay").classList.remove("open");
-});
 
 // ===== FILE UPLOAD =====
 const fileArea = document.getElementById("file-upload-area");
 const fileInput = document.getElementById("sysFiles");
 const fileList = document.getElementById("file-list");
 
-fileArea.addEventListener("click", () => fileInput.click());
-fileArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    fileArea.style.borderColor = "#7c3aed";
-});
-fileArea.addEventListener("dragleave", () => {
-    fileArea.style.borderColor = "#555";
-});
-fileArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    fileArea.style.borderColor = "#555";
-    handleFiles(e.dataTransfer.files);
-});
-fileInput.addEventListener("change", () => {
-    handleFiles(fileInput.files);
-});
+if (fileArea && fileInput) {
+    fileArea.addEventListener("click", () => fileInput.click());
+    fileArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        fileArea.style.borderColor = "#7c3aed";
+    });
+    fileArea.addEventListener("dragleave", () => {
+        fileArea.style.borderColor = "#555";
+    });
+    fileArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileArea.style.borderColor = "#555";
+        handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener("change", () => {
+        handleFiles(fileInput.files);
+    });
+}
+
+let uploadedWbFiles = [];
+
+function renderUploadedFiles() {
+    let box = document.getElementById("file-list");
+    if (!box) return;
+    // 只保留世界书还存在的记录——删了书，对应的文件行自动消失
+    uploadedWbFiles = uploadedWbFiles.filter(f => worldbooks.some(wb => wb.id === f.id));
+    box.innerHTML = "";
+    uploadedWbFiles.forEach(f => {
+        let row = document.createElement("div");
+        row.className = "wb-file-row";
+        row.innerHTML = `<span>📄 ${escapeHtml(f.name)}</span><span class="ok">✓ imported as worldbook</span>`;
+        box.appendChild(row);
+    });
+}
+
 
 function handleFiles(files) {
-    let names = [];
     Array.from(files).forEach(file => {
-        names.push(file.name);
         let reader = new FileReader();
         reader.onload = function(e) {
-            let sysPromptEl = document.getElementById("sysPrompt");
-            sysPromptEl.value = (sysPromptEl.value ? sysPromptEl.value + "\n\n" : "") + "--- " + file.name + " ---\n" + e.target.result;
+            let wbId = Date.now() + Math.floor(Math.random() * 1000);
+            worldbooks.push({
+                id: wbId,
+                name: file.name,
+                content: e.target.result,
+                keywords: [],
+                global: true
+            });
+            uploadedWbFiles.unshift({ name: file.name, id: wbId });
+            saveWorldbooks();
+            renderWorldbookList();
+            switchSettingsTab("worldbook");
         };
         reader.readAsText(file);
     });
-    let existing = fileList.innerHTML;
-    names.forEach(n => {
-        existing += `<span style="display:inline-block; margin: 3px; padding: 3px 6px; background: #1a1a1a; border: 1px solid #555; border-radius: 3px;">${n} ✓</span>`;
-    });
-    fileList.innerHTML = existing;
 }
+
 
 function formatMsgTime(ts) {
     if (!ts) return "";
@@ -302,7 +378,9 @@ function createNewChat() {
         id: generateId(),
         name: "Chat " + (allChats.length + 1),
         history: [],
-        created: new Date().toISOString()
+        created: new Date().toISOString(),
+        instruction: "",
+        worldbookIds: []
     };
     allChats.push(newChat);
     switchChat(newChat.id);
@@ -366,6 +444,7 @@ function renderChatList() {
     if (!list) return;
     list.innerHTML = "";
     let groups = {};
+    let monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     allChats.forEach(chat => {
         let dateKey;
         if (chat.created) {
@@ -378,9 +457,7 @@ function renderChatList() {
             } else if (d.toDateString() === yesterday.toDateString()) {
                 dateKey = "yesterday";
             } else {
-                let m = d.getMonth() + 1;
-                let day = d.getDate();
-                dateKey = m + "月" + day + "日";
+                dateKey = monthShort[d.getMonth()] + " " + d.getDate();
             }
         } else {
             dateKey = "older";
@@ -630,7 +707,6 @@ Respond with ONLY the frequency text. Nothing else.`;
     btn.disabled = false;
 }
 
-
 // ===== IPOD MUSIC PLAYER =====
 const audioPlayer = document.getElementById("audioPlayer");
 let currentTrackIndex = 0;
@@ -874,7 +950,7 @@ function closePhoneApp() {
     }
 }
 
-// --- PHONE NOTES ---
+// --- PHONE NOTES (Apple Notes style) ---
 async function generateNote() {
     let btn = document.getElementById("gen-note-btn");
     btn.textContent = "...";
@@ -914,28 +990,36 @@ Return ONLY the TITLE and NOTE lines. Nothing else.`;
     btn.disabled = false;
 }
 
-
 function renderPhoneNotes() {
     let list = document.getElementById("notes-list");
     if (!list) return;
     list.innerHTML = "";
     phoneNotes.forEach((note, i) => {
-        let displayTitle = note.title || note.text.split("\n")[0].slice(0, 40) + (note.text.length > 40 ? "..." : "");
+        let displayTitle = note.title || note.text.split("\n")[0].slice(0, 40);
+        let preview = note.text.replace(/\s+/g, " ").trim().slice(0, 90) + (note.text.length > 90 ? "…" : "");
         let div = document.createElement("div");
-        div.className = "phone-entry";
+        div.className = "note-cell";
         div.innerHTML = `
-            <div class="phone-entry-header" onclick="togglePhoneEntry(this)">
-                <span class="entry-preview">${escapeHtml(displayTitle)}</span>
-                <span class="entry-delete" onclick="event.stopPropagation(); deletePhoneNote(${i})">×</span>
-            </div>
-            <div class="phone-entry-content" style="display:none;">
+            <div class="note-cell-date">${escapeHtml(note.time || "")}</div>
+            <div class="note-cell-title">${escapeHtml(displayTitle)}</div>
+            <div class="note-cell-preview">${escapeHtml(preview)}</div>
+            <div class="note-cell-full" style="display:none;">
                 ${escapeHtml(note.text).replace(/\n/g, '<br>')}
-                <div class="entry-time">${note.time}</div>
-                <button class="entry-del-btn" onclick="event.stopPropagation(); deletePhoneNote(${i})">🗑 delete</button>
+                <div class="note-cell-actions">
+                    <button onclick="event.stopPropagation(); deletePhoneNote(${i})">🗑 delete note</button>
+                </div>
             </div>
         `;
+        div.addEventListener("click", function(e) {
+            if (e.target.closest(".note-cell-actions")) return;
+            let full = div.querySelector(".note-cell-full");
+            full.style.display = full.style.display === "none" ? "block" : "none";
+        });
         list.appendChild(div);
     });
+    if (phoneNotes.length === 0) {
+        list.innerHTML = `<div style="text-align:center; color:#48484a; font-size:12px; padding:30px 10px;">No Notes</div>`;
+    }
 }
 
 function deletePhoneNote(idx) {
@@ -985,7 +1069,6 @@ Return ONLY the TITLE and ITEM lines. Nothing else.`;
     btn.classList.remove("btn-generating");
     btn.disabled = false;
 }
-
 
 function renderPhonePurchases() {
     const list = document.getElementById("purchases-list");
@@ -1049,7 +1132,6 @@ function saveChatHistory() {
     }
 }
 
-// ★ 修正点：签名加上 preserveScroll 参数，并删掉多余的旧滚动代码
 function renderChatbox(preserveScroll) {
     let chatbox = document.getElementById("chatbox");
     let savedTop = chatbox.scrollTop;
@@ -1061,7 +1143,6 @@ function renderChatbox(preserveScroll) {
         wrapper.setAttribute("data-index", i);
         wrapper.setAttribute("data-role", msg.role);
 
-        // thinking block comes first — it happens before the reply
         if (msg.thinking) {
             let thinkDiv = document.createElement("div");
             thinkDiv.className = "msg-think";
@@ -1101,7 +1182,6 @@ function renderChatbox(preserveScroll) {
     }
 }
 
-// --- Generation state ---
 function setGenerating(state) {
     isGenerating = state;
     let btn = document.getElementById("sendBtn");
@@ -1121,7 +1201,6 @@ function stopGeneration() {
     }
 }
 
-// ===== 流式辅助函数 =====
 function stripThinkTags(text) {
     let m = text.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/i);
     if (m) {
@@ -1131,12 +1210,13 @@ function stripThinkTags(text) {
         };
     }
     return { thinking: null, content: text };
-}function interceptingHTML() {
+}
+
+function interceptingHTML() {
     return "intercepting".split("").map(c => `<span>${c}</span>`).join("") + "<span>…</span>";
 }
 
-
-// ===== 流式 callAPI =====
+// ===== STREAMING callAPI =====
 async function callAPI() {
     let chatbox = document.getElementById("chatbox");
     let apiUrl = localStorage.getItem("apiUrl");
@@ -1159,10 +1239,8 @@ async function callAPI() {
     setGenerating(true);
     currentAbortController = new AbortController();
 
-    // 发起时锁定目标聊天，防止中途切换导致回复串台
     const targetChatId = activeChatId;
 
-    // ===== build messages =====
     let messages = [];
     let freqData = JSON.parse(localStorage.getItem("frequencies") || "[]");
     let recentFreqs = freqData.slice(-10).map(f => {
@@ -1185,8 +1263,14 @@ async function callAPI() {
     let months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     let timeContext = "[Current date & time: " + days[now.getDay()] + ", " + months[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear() + ", " + now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0") + "]\n\n";
 
+    let targetChatObj = allChats.find(c => c.id === targetChatId);
+    let chatInstruction = (targetChatObj && targetChatObj.instruction) || "";
+    let worldbookText = buildWorldbookInjection(targetChatObj);
+
     let fullSystem = timeContext
         + (sysPrompt ? sysPrompt + "\n\n" : "")
+        + (chatInstruction ? "[Current scene-specific instructions]:\n" + chatInstruction + "\n\n" : "")
+        + (worldbookText ? "[Worldbook entries — background lore, use if relevant]:\n" + worldbookText + "\n\n" : "")
         + (recentFreqs ? "[Recent Frequencies between you and Ray — reference these naturally if relevant, don't force it]:\n" + recentFreqs + "\n\n" : "")
         + (recentNotes ? "[Things on your phone's notes — you can reference these if relevant, don't force it]:\n" + recentNotes + "\n\n" : "")
         + (recentPurchases ? "[Your recent purchases — you can reference these if relevant, don't force it]:\n" + recentPurchases + "\n\n" : "")
@@ -1195,7 +1279,6 @@ async function callAPI() {
     if (fullSystem) messages.push({ role: "system", content: fullSystem });
     messages = messages.concat(chatHistory);
 
-    // ===== 流式渲染节点（懒创建）=====
     let streamWrapper = null, streamThinkBody = null, streamContent = null;
     let fullContent = "";
     let fullThinking = "";
@@ -1222,22 +1305,19 @@ async function callAPI() {
     }
 
     function paint(force) {
-    if (targetChatId !== activeChatId) return;
-    let t = performance.now();
-    if (!force && t - lastPaint < 100) return;
-    lastPaint = t;
-    if (fullThinking) { ensureStreamNodes(); streamThinkBody.textContent = fullThinking; }
-    if (fullContent) {
-        // 正文输出中：流式渲染 + 跟随光标
-        ensureStreamNodes();
-        streamContent.innerHTML = renderMarkdown(fullContent) + '<span class="stream-cursor"></span>';
-    } else if (streamWrapper && streamWrapper.isConnected) {
-        // thinking 阶段、正文未开始：intercepting 动画在正文位置继续播
-        streamContent.innerHTML = `<div class="msg-loading" style="margin:0;">${interceptingHTML()}</div>`;
+        if (targetChatId !== activeChatId) return;
+        let t = performance.now();
+        if (!force && t - lastPaint < 100) return;
+        lastPaint = t;
+        if (fullThinking) { ensureStreamNodes(); streamThinkBody.textContent = fullThinking; }
+        if (fullContent) {
+            ensureStreamNodes();
+            streamContent.innerHTML = renderMarkdown(fullContent) + '<span class="stream-cursor"></span>';
+        } else if (streamWrapper && streamWrapper.isConnected) {
+            streamContent.innerHTML = `<div class="msg-loading" style="margin:0;">${interceptingHTML()}</div>`;
+        }
+        chatbox.scrollTop = chatbox.scrollHeight;
     }
-    chatbox.scrollTop = chatbox.scrollHeight;
-}
-
 
     try {
         let response = await fetch(apiUrl + "/chat/completions", {
@@ -1264,7 +1344,6 @@ async function callAPI() {
         const contentType = response.headers.get("content-type") || "";
 
         if (contentType.includes("text/event-stream") && response.body) {
-            // ===== SSE 流式解析 =====
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
             let buffer = "";
@@ -1287,11 +1366,10 @@ async function callAPI() {
                         else if (delta.reasoning) fullThinking += delta.reasoning;
                         if (delta.content) fullContent += delta.content;
                         paint(false);
-                    } catch (e) { /* 跳过坏 chunk */ }
+                    } catch (e) { /* skip bad chunk */ }
                 }
             }
         } else {
-            // ===== fallback：代理不支持 stream，按普通 JSON 处理 =====
             const data = await response.json();
             if (data.error) throw new Error(data.error.message || "API error");
             const parsed = extractThinking(data);
@@ -1300,7 +1378,6 @@ async function callAPI() {
             paint(true);
         }
 
-        // ===== 收尾：清理嵌在 content 里的 <think> 标签 =====
         let finalThinking = fullThinking.trim() || null;
         let finalContent = fullContent;
         if (!finalThinking) {
@@ -1313,7 +1390,6 @@ async function callAPI() {
 
         streamWrapper?.remove();
 
-        // 写回「发起时的那个聊天」
         const targetChat = allChats.find(c => c.id === targetChatId);
         if (targetChat) {
             targetChat.history.push({
@@ -1380,13 +1456,11 @@ async function sendMsg() {
     let text = input.value.trim();
     if (!text) return;
     chatHistory.push({ role: "user", content: text, time: Date.now() });
-
     let activeChat = getActiveChat();
     if (activeChat && chatHistory.length === 1 && activeChat.name.startsWith("Chat ")) {
         activeChat.name = text.slice(0, 30) + (text.length > 30 ? "..." : "");
         renderChatList();
     }
-
     saveChatHistory();
     renderChatbox();
     input.value = "";
@@ -1475,7 +1549,6 @@ document.getElementById("chatbox").addEventListener("click", function(e) {
         if (!wrapper) return;
         let index = parseInt(wrapper.dataset.index);
         let action = actionBtn.dataset.action;
-
         if (action === "delete") {
             chatHistory.splice(index, 1);
             saveChatHistory();
@@ -1570,7 +1643,7 @@ function renderMemories() {
             let groupDiv = document.createElement("div");
             groupDiv.className = "memory-month-group";
             let count = groups[month].length;
-            groupDiv.innerHTML = `<div class="memory-month-header" data-month="${month}" onclick="toggleMemoryMonth(this)">▼ ${month} <span style="float:right;color:#555;">${count}条</span></div>`;
+            groupDiv.innerHTML = `<div class="memory-month-header" data-month="${month}" onclick="toggleMemoryMonth(this)">▼ ${month} <span style="float:right;color:#555;">${count}</span></div>`;
             groups[month].forEach(mem => {
                 let entry = document.createElement("div");
                 entry.className = "memory-entry";
@@ -1594,7 +1667,160 @@ function toggleMemoryMonth(el) {
     if (!group) return;
     let collapsed = group.classList.toggle('collapsed');
     let count = group.querySelectorAll('.memory-entry').length;
-    el.innerHTML = (collapsed ? '▶ ' : '▼ ') + el.dataset.month + ` <span style="float:right;color:#555;">${count}条</span>`;
+    el.innerHTML = (collapsed ? '▶ ' : '▼ ') + el.dataset.month + ` <span style="float:right;color:#555;">${count}</span>`;
+}
+
+// ===== WORLDBOOK SYSTEM =====
+let worldbooks = JSON.parse(localStorage.getItem("worldbooks") || "[]");
+let editingWbId = null;
+
+function saveWorldbooks() {
+    localStorage.setItem("worldbooks", JSON.stringify(worldbooks));
+}
+
+function switchSettingsTab(tabName) {
+    document.querySelectorAll(".settings-tab").forEach(t => {
+        t.classList.toggle("active", t.dataset.tab === tabName);
+    });
+    document.querySelectorAll(".settings-tab-content").forEach(c => {
+        c.classList.toggle("active", c.id === "tab-" + tabName);
+    });
+}
+
+document.querySelectorAll(".settings-tab").forEach(tab => {
+    tab.addEventListener("click", () => switchSettingsTab(tab.dataset.tab));
+});
+
+function renderWorldbookList() {
+    let list = document.getElementById("worldbook-list");
+    if (!list) return;
+    list.innerHTML = "";
+    let chat = getActiveChat();
+    worldbooks.forEach(wb => {
+        let globalOn = !!wb.global;
+        let chatOn = !!(chat && chat.worldbookIds && chat.worldbookIds.includes(wb.id));
+        let modeText = (wb.keywords && wb.keywords.length)
+            ? "🔑 " + wb.keywords.slice(0, 3).join(", ")
+            : "♾ always";
+        let row = document.createElement("div");
+        row.className = "wb-row";
+        row.innerHTML = `
+            <span class="wb-name" title="${escapeHtml(wb.name)}">${escapeHtml(wb.name)}</span>
+            <span class="wb-mode">${escapeHtml(modeText)}</span>
+            <span class="wb-toggle ${globalOn ? "on" : ""}" title="Global" onclick="toggleWbGlobal(${wb.id})">🌐</span>
+            <span class="wb-toggle ${chatOn ? "on" : ""}" title="This chat only" onclick="toggleWbChat(${wb.id})">💬</span>
+            <span class="wb-action" onclick="openWbEditor(${wb.id})">✏️</span>
+            <span class="wb-action" onclick="deleteWb(${wb.id})">🗑️</span>
+        `;
+        list.appendChild(row);
+    });
+    if (worldbooks.length === 0) {
+        list.innerHTML = `<div class="sidebar-placeholder">no worldbooks yet. upload a file or create one above.</div>`;
+    }
+        renderUploadedFiles();
+
+}
+
+function toggleWbGlobal(id) {
+    let wb = worldbooks.find(w => w.id === id);
+    if (!wb) return;
+    wb.global = !wb.global;
+    saveWorldbooks();
+    renderWorldbookList();
+}
+
+function toggleWbChat(id) {
+    let chat = getActiveChat();
+    if (!chat) return;
+    if (!chat.worldbookIds) chat.worldbookIds = [];
+    let i = chat.worldbookIds.indexOf(id);
+    if (i >= 0) chat.worldbookIds.splice(i, 1);
+    else chat.worldbookIds.push(id);
+    saveAllChats();
+    renderWorldbookList();
+}
+
+function openWbEditor(id) {
+    editingWbId = id;
+    let editor = document.getElementById("worldbook-editor");
+    if (id === null) {
+        document.getElementById("wb-name").value = "";
+        document.getElementById("wb-keywords").value = "";
+        document.getElementById("wb-content").value = "";
+    } else {
+        let wb = worldbooks.find(w => w.id === id);
+        if (!wb) return;
+        document.getElementById("wb-name").value = wb.name;
+        document.getElementById("wb-keywords").value = (wb.keywords || []).join(", ");
+        document.getElementById("wb-content").value = wb.content;
+    }
+    editor.style.display = "block";
+    document.getElementById("wb-name").focus();
+}
+
+function saveWbEditor() {
+    let name = document.getElementById("wb-name").value.trim();
+    let content = document.getElementById("wb-content").value.trim();
+    if (!name || !content) {
+        alert("name and content cannot be empty");
+        return;
+    }
+    let keywords = document.getElementById("wb-keywords").value
+        .split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
+    if (editingWbId === null) {
+        worldbooks.push({ id: Date.now(), name, content, keywords, global: false });
+    } else {
+        let wb = worldbooks.find(w => w.id === editingWbId);
+        if (wb) { wb.name = name; wb.content = content; wb.keywords = keywords; }
+    }
+    saveWorldbooks();
+    closeWbEditor();
+    renderWorldbookList();
+}
+
+function closeWbEditor() {
+    editingWbId = null;
+    document.getElementById("worldbook-editor").style.display = "none";
+}
+
+function deleteWb(id) {
+    let wb = worldbooks.find(w => w.id === id);
+    if (!wb) return;
+    if (!confirm('delete worldbook "' + wb.name + '"?')) return;
+    worldbooks = worldbooks.filter(w => w.id !== id);
+    allChats.forEach(c => {
+        if (c.worldbookIds) c.worldbookIds = c.worldbookIds.filter(x => x !== id);
+    });
+    saveWorldbooks();
+    saveAllChats();
+    renderWorldbookList();
+}
+
+document.getElementById("new-worldbook-btn")?.addEventListener("click", () => openWbEditor(null));
+document.getElementById("wb-save")?.addEventListener("click", saveWbEditor);
+document.getElementById("wb-cancel")?.addEventListener("click", closeWbEditor);
+document.getElementById("settings-save")?.addEventListener("click", saveSettings);
+document.getElementById("settings-close")?.addEventListener("click", () => {
+    document.getElementById("settings-overlay").classList.remove("open");
+});
+
+// ===== keyword trigger + injection =====
+function buildWorldbookInjection(chatObj) {
+    if (worldbooks.length === 0) return "";
+    let recentText = (chatObj ? chatObj.history : chatHistory)
+        .slice(-8).map(m => (m.content || "").toLowerCase()).join("\n");
+    let parts = [];
+    worldbooks.forEach(wb => {
+        let on = !!wb.global ||
+            (chatObj && chatObj.worldbookIds && chatObj.worldbookIds.includes(wb.id));
+        if (!on) return;
+        if (wb.keywords && wb.keywords.length) {
+            let hit = wb.keywords.some(k => recentText.includes(k));
+            if (!hit) return;
+        }
+        parts.push("--- [Worldbook: " + wb.name + "] ---\n" + wb.content);
+    });
+    return parts.join("\n\n");
 }
 
 // ===== MOBILE SIDEBAR + VIEW SWITCHING =====
@@ -1637,7 +1863,6 @@ function showMobileView(view) {
     document.getElementById("sidebar").classList.remove("open");
     document.getElementById("sidebar-overlay").style.display = "none";
     returnSectionsToSidebar();
-
     document.getElementById("chat-area").classList.add("hidden");
     document.querySelectorAll(".mobile-view").forEach(v => {
         v.classList.remove("active");
@@ -1645,11 +1870,9 @@ function showMobileView(view) {
         let body = v.querySelector(".mobile-view-body");
         if (body) body.innerHTML = "";
     });
-
     let title = document.getElementById("topbar-title");
     if (title) title.style.display = (view === "chat") ? "" : "none";
     document.body.classList.remove("phone-active");
-
     if (view === "chat") {
         document.getElementById("chat-area").classList.remove("hidden");
         return;
@@ -1709,3 +1932,6 @@ loadAllChats();
 initPhone();
 renderMemories();
 renderFrequencies();
+applyFont();
+initFontControls();
+
