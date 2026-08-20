@@ -47,7 +47,6 @@ function savePreset() {
     apiPresets.push(preset);
     localStorage.setItem("apiPresets", JSON.stringify(apiPresets));
     renderPresetDropdown();
-    // auto-select the one we just saved
     document.getElementById("presetSelect").value = apiPresets.length - 1;
 }
 
@@ -73,7 +72,6 @@ document.getElementById("presetSelect").addEventListener("change", function() {
     document.getElementById("modelName").value = p.model || "";
     document.getElementById("maxTokens").value = p.maxTokens || "4096";
     document.getElementById("temperature").value = p.temperature || "0.7";
-    // hide model dropdown if visible
     document.getElementById("modelSelect").style.display = "none";
 });
 
@@ -124,30 +122,21 @@ async function fetchModels() {
 // ===== EXPORT / IMPORT =====
 function exportData() {
     let data = {
-        // ===== CHAT =====
         allChats: JSON.parse(localStorage.getItem("allChats") || "[]"),
         activeChatId: localStorage.getItem("activeChatId") || "",
-        // ===== FREQUENCIES =====
         frequencies: JSON.parse(localStorage.getItem("frequencies") || "[]"),
-        // ===== MEMORY =====
         memories: JSON.parse(localStorage.getItem("memories") || "[]"),
-        // ===== JOHN'S PHONE =====
         phoneNotes: JSON.parse(localStorage.getItem("phoneNotes") || "[]"),
         phonePurchases: JSON.parse(localStorage.getItem("phonePurchases") || "[]"),
-        // ===== API SETTINGS =====
         apiUrl: localStorage.getItem("apiUrl") || "",
         apiKey: localStorage.getItem("apiKey") || "",
         modelName: localStorage.getItem("modelName") || "",
         maxTokens: localStorage.getItem("maxTokens") || "",
         temperature: localStorage.getItem("temperature") || "",
         sysPrompt: localStorage.getItem("sysPrompt") || "",
-        // ===== API PRESETS =====
         apiPresets: JSON.parse(localStorage.getItem("apiPresets") || "[]")
     };
-    let blob = new Blob(
-        [JSON.stringify(data, null, 2)],
-        { type: "application/json" }
-    );
+    let blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     let url = URL.createObjectURL(blob);
     let a = document.createElement("a");
     a.href = url;
@@ -170,48 +159,25 @@ document.getElementById("importFile").addEventListener("change", function() {
             if (!confirm("this will overwrite all current data. continue?")) {
                 return;
             }
-            // ===== CHAT =====
-            if (data.allChats) {
-                localStorage.setItem("allChats", JSON.stringify(data.allChats));
-            }
-            if (data.activeChatId) {
-                localStorage.setItem("activeChatId", data.activeChatId);
-            }
-            // ===== FREQUENCIES =====
-            if (data.frequencies) {
-                localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
-            }
-            // ===== MEMORY =====
-            if (data.memories) {
-                localStorage.setItem("memories", JSON.stringify(data.memories));
-            }
-            // ===== JOHN'S PHONE =====
-            if (data.phoneNotes) {
-                localStorage.setItem("phoneNotes", JSON.stringify(data.phoneNotes));
-            }
-            if (data.phonePurchases) {
-                localStorage.setItem("phonePurchases", JSON.stringify(data.phonePurchases));
-            }
-            // ===== API SETTINGS =====
+            if (data.allChats) localStorage.setItem("allChats", JSON.stringify(data.allChats));
+            if (data.activeChatId) localStorage.setItem("activeChatId", data.activeChatId);
+            if (data.frequencies) localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
+            if (data.memories) localStorage.setItem("memories", JSON.stringify(data.memories));
+            if (data.phoneNotes) localStorage.setItem("phoneNotes", JSON.stringify(data.phoneNotes));
+            if (data.phonePurchases) localStorage.setItem("phonePurchases", JSON.stringify(data.phonePurchases));
             if (data.apiUrl) localStorage.setItem("apiUrl", data.apiUrl);
             if (data.apiKey) localStorage.setItem("apiKey", data.apiKey);
             if (data.modelName) localStorage.setItem("modelName", data.modelName);
             if (data.maxTokens) localStorage.setItem("maxTokens", data.maxTokens);
             if (data.temperature) localStorage.setItem("temperature", data.temperature);
             if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
-            // ===== API PRESETS =====
-            if (data.apiPresets) {
-                localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
-            }
-            // Reload so all JS variables are rebuilt
-            // from the newly imported localStorage.
+            if (data.apiPresets) localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
             location.reload();
         } catch (err) {
             alert("invalid file: " + err.message);
         }
     };
     reader.readAsText(file);
-    // Allow selecting the same file again later
     this.value = "";
 });
 
@@ -252,8 +218,6 @@ fileInput.addEventListener("change", () => {
     handleFiles(fileInput.files);
 });
 
-// FIXED: read current textarea value inside each async onload,
-// so multiple files no longer overwrite each other
 function handleFiles(files) {
     let names = [];
     Array.from(files).forEach(file => {
@@ -261,8 +225,7 @@ function handleFiles(files) {
         let reader = new FileReader();
         reader.onload = function(e) {
             let sysPromptEl = document.getElementById("sysPrompt");
-            sysPromptEl.value = (sysPromptEl.value ? sysPromptEl.value + "\n\n" : "") +
-                "--- " + file.name + " ---\n" + e.target.result;
+            sysPromptEl.value = (sysPromptEl.value ? sysPromptEl.value + "\n\n" : "") + "--- " + file.name + " ---\n" + e.target.result;
         };
         reader.readAsText(file);
     });
@@ -272,6 +235,7 @@ function handleFiles(files) {
     });
     fileList.innerHTML = existing;
 }
+
 function formatMsgTime(ts) {
     if (!ts) return "";
     let d = new Date(ts);
@@ -282,6 +246,20 @@ function formatMsgTime(ts) {
     return mm + "." + dd + " // " + hh + ":" + mi;
 }
 
+function extractThinking(data) {
+    let msg = data.choices && data.choices[0] && data.choices[0].message;
+    if (!msg) return { thinking: null, content: "" };
+    let content = msg.content || "";
+    let thinking = msg.reasoning_content || msg.reasoning || msg.thinking || null;
+    if (!thinking) {
+        let m = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>/i);
+        if (m) {
+            thinking = m[1].trim();
+            content = content.replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/i, "").trim();
+        }
+    }
+    return { thinking: thinking, content: content };
+}
 
 // ===== UTILITIES =====
 function renderMarkdown(text) {
@@ -387,8 +365,6 @@ function renderChatList() {
     let list = document.getElementById("chat-list");
     if (!list) return;
     list.innerHTML = "";
-
-    // group chats by date
     let groups = {};
     allChats.forEach(chat => {
         let dateKey;
@@ -412,8 +388,6 @@ function renderChatList() {
         if (!groups[dateKey]) groups[dateKey] = [];
         groups[dateKey].push(chat);
     });
-
-    // put "today" first, "yesterday" second
     let order = Object.keys(groups);
     order.sort((a, b) => {
         if (a === "today") return -1;
@@ -422,7 +396,6 @@ function renderChatList() {
         if (b === "yesterday") return 1;
         return 0;
     });
-
     order.forEach(dateKey => {
         let header = document.createElement("div");
         header.className = "chat-date-header";
@@ -476,16 +449,11 @@ function saveFrequencies() {
     localStorage.setItem("frequencies", JSON.stringify(frequencies));
 }
 
-// shared submit for reply button + Enter key
 async function submitFreqReply(idx, text) {
     text = (text || "").trim();
     if (!text) return;
     if (!frequencies[idx].replies) frequencies[idx].replies = [];
-    frequencies[idx].replies.push({
-        sender: "ray",
-        text: text,
-        time: new Date().toLocaleString()
-    });
+    frequencies[idx].replies.push({ sender: "ray", text: text, time: new Date().toLocaleString() });
     saveFrequencies();
     renderFrequencies();
     await autoReply(idx);
@@ -494,13 +462,10 @@ async function submitFreqReply(idx, text) {
 function renderFrequencies() {
     let timeline = document.getElementById("freq-timeline");
     timeline.innerHTML = "";
-
     let sorted = [...frequencies].reverse();
     sorted.forEach((entry, reverseIdx) => {
         let realIndex = frequencies.length - 1 - reverseIdx;
-
         let senderLabel = entry.sender === "john" ? "🖤john" : "💜ray";
-
         let repliesHtml = "";
         if (entry.replies && entry.replies.length > 0) {
             entry.replies.forEach(reply => {
@@ -509,25 +474,15 @@ function renderFrequencies() {
                 repliesHtml += `<div class="freq-reply ${cls}"><span class="reply-sender">${label}：</span><span class="reply-text">${escapeHtml(reply.text)}</span></div>`;
             });
         }
-
-        let lastMsg = entry.replies && entry.replies.length > 0
-            ? entry.replies[entry.replies.length - 1]
-            : entry;
+        let lastMsg = entry.replies && entry.replies.length > 0 ? entry.replies[entry.replies.length - 1] : entry;
         let showReplyOption = lastMsg.sender === "john";
-
-        let replyToggle = showReplyOption
-            ? `<span class="freq-reply-toggle" data-index="${realIndex}">reply ↩</span>`
-            : "";
-        let replyInputHtml = showReplyOption
-            ? `<div class="freq-reply-box" data-index="${realIndex}" style="display:none;"><div class="freq-reply-row"><input type="text" class="freq-reply-input" data-index="${realIndex}" placeholder="reply..."><button class="freq-reply-send" data-index="${realIndex}">↩</button></div></div>`
-            : "";
-
+        let replyToggle = showReplyOption ? `<span class="freq-reply-toggle" data-index="${realIndex}">reply ↩</span>` : "";
+        let replyInputHtml = showReplyOption ? `<div class="freq-reply-box" data-index="${realIndex}" style="display:none;"><div class="freq-reply-row"><input type="text" class="freq-reply-input" data-index="${realIndex}" placeholder="reply..."><button class="freq-reply-send" data-index="${realIndex}">↩</button></div></div>` : "";
         let hasReplies = entry.replies && entry.replies.length > 0;
         let repliesSection = "";
         if (hasReplies || showReplyOption) {
             repliesSection = `<div class="freq-replies">${repliesHtml}${replyInputHtml}</div>${replyToggle}`;
         }
-
         let div = document.createElement("div");
         div.className = "freq-entry";
         div.innerHTML = `
@@ -541,8 +496,6 @@ function renderFrequencies() {
         `;
         timeline.appendChild(div);
     });
-
-    // FIXED: all handlers bound ONCE, outside the render loop
     document.querySelectorAll(".freq-delete").forEach(btn => {
         btn.addEventListener("click", function() {
             let idx = parseInt(this.dataset.index);
@@ -551,7 +504,6 @@ function renderFrequencies() {
             renderFrequencies();
         });
     });
-
     document.querySelectorAll(".freq-reply-send").forEach(btn => {
         btn.addEventListener("click", function() {
             let idx = parseInt(this.dataset.index);
@@ -559,7 +511,6 @@ function renderFrequencies() {
             if (input) submitFreqReply(idx, input.value);
         });
     });
-
     document.querySelectorAll(".freq-reply-input").forEach(input => {
         input.addEventListener("keydown", function(e) {
             if (e.key === "Enter") {
@@ -567,7 +518,6 @@ function renderFrequencies() {
             }
         });
     });
-
     document.querySelectorAll(".freq-reply-toggle").forEach(toggle => {
         toggle.addEventListener("click", function() {
             let idx = this.dataset.index;
@@ -626,11 +576,7 @@ Reply as John. ONLY the reply text.`;
     let reply = await freqAPI(prompt);
     if (reply) {
         if (!frequencies[index].replies) frequencies[index].replies = [];
-        frequencies[index].replies.push({
-            sender: "john",
-            text: reply,
-            time: new Date().toLocaleString()
-        });
+        frequencies[index].replies.push({ sender: "john", text: reply, time: new Date().toLocaleString() });
         saveFrequencies();
         renderFrequencies();
     }
@@ -640,12 +586,7 @@ async function postFrequency() {
     let input = document.getElementById("freq-input");
     let text = input.value.trim();
     if (!text) return;
-    frequencies.push({
-        sender: "ray",
-        text: text,
-        time: new Date().toLocaleString(),
-        replies: []
-    });
+    frequencies.push({ sender: "ray", text: text, time: new Date().toLocaleString(), replies: [] });
     saveFrequencies();
     input.value = "";
     renderFrequencies();
@@ -661,14 +602,12 @@ async function generateFrequency() {
     }
     let btn = document.getElementById("freq-generate");
     btn.textContent = "⚡ intercepting...";
+    btn.classList.add("btn-generating");
     btn.disabled = true;
-
     let recentChat = chatHistory.slice(-10).map(m =>
         (m.role === "user" ? "Ray" : "John") + ": " + m.content
     ).join("\n");
-
     let recentFreqs = frequencies.slice(-3).map(f => f.sender + ": " + f.text).join("\n");
-
     let prompt = `You are John S. You and your girlfriend Ray have a shared mood board called "Frequencies" — like short tweets or intercepted radio signals between lovers. Based on what you two have been talking about recently, post ONE new frequency. It should feel like a reaction, a thought, a roast, a soft moment, or a vibe check based on the conversation. One to three sentences. Include an emoji. Be natural.
 
 Recent conversation:
@@ -678,29 +617,24 @@ Recent frequencies:
 ${recentFreqs || "(none)"}
 
 Respond with ONLY the frequency text. Nothing else.`;
-
     let reply = await freqAPI(prompt);
     if (reply) {
-        frequencies.push({
-            sender: "john",
-            text: reply,
-            time: new Date().toLocaleString(),
-            replies: []
-        });
+        frequencies.push({ sender: "john", text: reply, time: new Date().toLocaleString(), replies: [] });
         saveFrequencies();
         renderFrequencies();
     } else {
         console.log("generateFrequency: no reply received");
     }
     btn.textContent = "⚡ intercept signal";
+    btn.classList.remove("btn-generating");
     btn.disabled = false;
 }
+
 
 // ===== IPOD MUSIC PLAYER =====
 const audioPlayer = document.getElementById("audioPlayer");
 let currentTrackIndex = 0;
 let isPlaying = false;
-
 const playlist = [
     { title: "Dissolved Girl", artist: "Massive Attack", cover: "mp3_player/dissolved_girl_cover.png", audio: "mp3_player/dissolved_girl.mp3" },
     { title: "Lhabia", artist: "Deftones", cover: "mp3_player/lhabia_cover.png", audio: "mp3_player/Lhabia.mp3" },
@@ -891,7 +825,6 @@ function resetPhoneToLockScreen() {
     if (home) home.style.display = "none";
     if (notes) notes.style.display = "none";
     if (purchases) purchases.style.display = "none";
-    // 每次重新打开手机时换一个问题
     loadNewQuestion();
 }
 
@@ -934,9 +867,7 @@ function openPhoneApp(app) {
 function closePhoneApp() {
     document.getElementById("phone-notes-app").style.display = "none";
     document.getElementById("phone-purchases-app").style.display = "none";
-    // 回到手机 Home
     document.getElementById("phone-home").style.display = "flex";
-    // 重新显示 Dead Drop 的 ×
     const closeButton = document.querySelector("#mobile-phone .close-x");
     if (closeButton) {
         closeButton.style.display = "";
@@ -947,15 +878,15 @@ function closePhoneApp() {
 async function generateNote() {
     let btn = document.getElementById("gen-note-btn");
     btn.textContent = "...";
+    btn.classList.add("btn-generating");
     btn.disabled = true;
-
     let recentChat = chatHistory.slice(-10).map(m =>
         (m.role === "user" ? "Ray" : "John") + ": " + m.content
     ).join("\n");
-
     let existingNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
+    let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty). Generate ONE note found on his phone.
 
-    let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty). Generate ONE note found on his phone. Return in this EXACT format:
+Return in this EXACT format:
 TITLE: [a short witty title, 3-6 words, lowercase, like john named this note knowing his gf might snoop]
 NOTE: [the actual note content, 2-5 lines, messy and real — not polished]
 
@@ -966,7 +897,6 @@ Already existing notes (DO NOT repeat these or write anything too similar):
 ${existingNotes || "(none yet)"}
 
 Return ONLY the TITLE and NOTE lines. Nothing else.`;
-
     let reply = await freqAPI(prompt);
     if (reply) {
         let title = "";
@@ -975,25 +905,21 @@ Return ONLY the TITLE and NOTE lines. Nothing else.`;
         let noteMatch = reply.match(/NOTE:\s*([\s\S]+)/im);
         if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
         if (noteMatch) text = noteMatch[1].trim();
-        phoneNotes.unshift({
-            title: title,
-            text: text,
-            time: new Date().toLocaleString(),
-            id: Date.now()
-        });
+        phoneNotes.unshift({ title: title, text: text, time: new Date().toLocaleString(), id: Date.now() });
         localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
         renderPhoneNotes();
     }
     btn.textContent = "+ intercept thought";
+    btn.classList.remove("btn-generating");
     btn.disabled = false;
 }
+
 
 function renderPhoneNotes() {
     let list = document.getElementById("notes-list");
     if (!list) return;
     list.innerHTML = "";
     phoneNotes.forEach((note, i) => {
-        // backwards compat: old entries without title fall back to first line
         let displayTitle = note.title || note.text.split("\n")[0].slice(0, 40) + (note.text.length > 40 ? "..." : "");
         let div = document.createElement("div");
         div.className = "phone-entry";
@@ -1005,6 +931,7 @@ function renderPhoneNotes() {
             <div class="phone-entry-content" style="display:none;">
                 ${escapeHtml(note.text).replace(/\n/g, '<br>')}
                 <div class="entry-time">${note.time}</div>
+                <button class="entry-del-btn" onclick="event.stopPropagation(); deletePhoneNote(${i})">🗑 delete</button>
             </div>
         `;
         list.appendChild(div);
@@ -1021,15 +948,15 @@ function deletePhoneNote(idx) {
 async function generatePurchase() {
     let btn = document.getElementById("gen-purchase-btn");
     btn.textContent = "...";
+    btn.classList.add("btn-generating");
     btn.disabled = true;
-
     let recentChat = chatHistory.slice(-10).map(m =>
         (m.role === "user" ? "Ray" : "John") + ": " + m.content
     ).join("\n");
-
     let existingPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
+    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty). Generate ONE purchase entry.
 
-    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty). Generate ONE purchase entry. Return in this EXACT format:
+Return in this EXACT format:
 TITLE: [a short witty title, 3-6 words, lowercase — like john is justifying this purchase to his snooping girlfriend. e.g. "for completely innocent purposes", "it was on sale okay", "don't ask about this one"]
 ITEM: [item name] — $[price]
 
@@ -1042,7 +969,6 @@ Already existing purchases (DO NOT repeat these or write anything too similar):
 ${existingPurchases || "(none yet)"}
 
 Return ONLY the TITLE and ITEM lines. Nothing else.`;
-
     let reply = await freqAPI(prompt);
     if (reply) {
         let title = "";
@@ -1051,18 +977,15 @@ Return ONLY the TITLE and ITEM lines. Nothing else.`;
         let itemMatch = reply.match(/ITEM:\s*(.+)/im);
         if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
         if (itemMatch) text = itemMatch[1].trim();
-        phonePurchases.unshift({
-            title: title,
-            text: text,
-            time: new Date().toLocaleString(),
-            id: Date.now()
-        });
+        phonePurchases.unshift({ title: title, text: text, time: new Date().toLocaleString(), id: Date.now() });
         localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
         renderPhonePurchases();
     }
     btn.textContent = "+ dig deeper";
+    btn.classList.remove("btn-generating");
     btn.disabled = false;
 }
+
 
 function renderPhonePurchases() {
     const list = document.getElementById("purchases-list");
@@ -1077,7 +1000,6 @@ function renderPhonePurchases() {
             itemName = match[1].trim();
             price = match[2].trim();
         }
-        // collapsed: show title. expanded: show actual item
         let displayTitle = p.title || itemName;
         const div = document.createElement("div");
         div.className = "phone-entry";
@@ -1094,6 +1016,7 @@ function renderPhonePurchases() {
             <div class="phone-entry-content" style="display:none;">
                 ${escapeHtml(itemName)}${price ? ' — ' + escapeHtml(price) : ''}
                 <div class="entry-time">${escapeHtml(p.time || "")}</div>
+                <button class="entry-del-btn" onclick="event.stopPropagation(); deletePhonePurchase(${i})">🗑 delete</button>
             </div>
         `;
         list.appendChild(div);
@@ -1126,8 +1049,10 @@ function saveChatHistory() {
     }
 }
 
-function renderChatbox() {
+// ★ 修正点：签名加上 preserveScroll 参数，并删掉多余的旧滚动代码
+function renderChatbox(preserveScroll) {
     let chatbox = document.getElementById("chatbox");
+    let savedTop = chatbox.scrollTop;
     chatbox.innerHTML = "";
     chatHistory.forEach((msg, i) => {
         let cls = msg.role === "user" ? "msg-user" : "msg-john";
@@ -1160,7 +1085,6 @@ function renderChatbox() {
         wrapper.appendChild(contentDiv);
         wrapper.appendChild(actionsDiv);
 
-        // timestamp below everything, aligned to sender's side
         if (msg.time) {
             let timeDiv = document.createElement("div");
             timeDiv.className = "msg-time";
@@ -1170,7 +1094,11 @@ function renderChatbox() {
 
         chatbox.appendChild(wrapper);
     });
-    chatbox.scrollTop = chatbox.scrollHeight;
+    if (preserveScroll) {
+        chatbox.scrollTop = savedTop;
+    } else {
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
 }
 
 // --- Generation state ---
@@ -1193,14 +1121,31 @@ function stopGeneration() {
     }
 }
 
-// --- Shared API call (used by send + regenerate + retry) ---
+// ===== 流式辅助函数 =====
+function stripThinkTags(text) {
+    let m = text.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/i);
+    if (m) {
+        return {
+            thinking: m[1].trim(),
+            content: text.replace(/<think(?:ing)?>[\s\S]*?(?:<\/think(?:ing)?>|$)/i, "").trim()
+        };
+    }
+    return { thinking: null, content: text };
+}function interceptingHTML() {
+    return "intercepting".split("").map(c => `<span>${c}</span>`).join("") + "<span>…</span>";
+}
+
+
+// ===== 流式 callAPI =====
 async function callAPI() {
     let chatbox = document.getElementById("chatbox");
     let apiUrl = localStorage.getItem("apiUrl");
     let apiKey = localStorage.getItem("apiKey");
     let model = localStorage.getItem("modelName") || "claude-opus-4-6-thinking";
-    let maxTokens = parseInt(localStorage.getItem("maxTokens")) || 4096;
-    let temp = parseFloat(localStorage.getItem("temperature")) || 0.7;
+    let temp = parseFloat(localStorage.getItem("temperature"));
+    if (isNaN(temp)) temp = 0.7;
+    let maxTokens = parseInt(localStorage.getItem("maxTokens"));
+    if (isNaN(maxTokens)) maxTokens = 4096;
     let sysPrompt = localStorage.getItem("sysPrompt") || "";
 
     if (!apiUrl || !apiKey) {
@@ -1209,21 +1154,22 @@ async function callAPI() {
         return;
     }
 
-    // show loading
-    chatbox.innerHTML += `<div class="msg-loading" id="typing"><span>i</span><span>n</span><span>t</span><span>e</span><span>r</span><span>c</span><span>e</span><span>p</span><span>t</span><span>i</span><span>n</span><span>g</span><span>…</span></div>`;
+    chatbox.innerHTML += `<div class="msg-loading" id="typing">${interceptingHTML()}</div>`;
     chatbox.scrollTop = chatbox.scrollHeight;
-
     setGenerating(true);
     currentAbortController = new AbortController();
 
-    // build messages
+    // 发起时锁定目标聊天，防止中途切换导致回复串台
+    const targetChatId = activeChatId;
+
+    // ===== build messages =====
     let messages = [];
     let freqData = JSON.parse(localStorage.getItem("frequencies") || "[]");
     let recentFreqs = freqData.slice(-10).map(f => {
         let thread = f.sender + ": " + f.text;
         if (f.replies && f.replies.length > 0) {
             f.replies.forEach(r => {
-                thread += "\n  → " + r.sender + ": " + r.text;
+                thread += "\n → " + r.sender + ": " + r.text;
             });
         }
         return thread;
@@ -1231,21 +1177,16 @@ async function callAPI() {
 
     let recentNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
     let recentPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
-
     let memoryData = JSON.parse(localStorage.getItem("memories") || "[]");
     let memoryText = memoryData.map(m => "[" + m.date + "] " + m.content).join("\n");
 
-        // time awareness for the AI
     let now = new Date();
     let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     let months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    let timeContext = "[Current date & time: " + days[now.getDay()] + ", " +
-        months[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear() +
-        ", " + now.getHours().toString().padStart(2, "0") + ":" +
-        now.getMinutes().toString().padStart(2, "0") + "]\n\n";
+    let timeContext = "[Current date & time: " + days[now.getDay()] + ", " + months[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear() + ", " + now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0") + "]\n\n";
 
-
-    let fullSystem = timeContext + (sysPrompt ? sysPrompt + "\n\n" : "")
+    let fullSystem = timeContext
+        + (sysPrompt ? sysPrompt + "\n\n" : "")
         + (recentFreqs ? "[Recent Frequencies between you and Ray — reference these naturally if relevant, don't force it]:\n" + recentFreqs + "\n\n" : "")
         + (recentNotes ? "[Things on your phone's notes — you can reference these if relevant, don't force it]:\n" + recentNotes + "\n\n" : "")
         + (recentPurchases ? "[Your recent purchases — you can reference these if relevant, don't force it]:\n" + recentPurchases + "\n\n" : "")
@@ -1253,6 +1194,50 @@ async function callAPI() {
 
     if (fullSystem) messages.push({ role: "system", content: fullSystem });
     messages = messages.concat(chatHistory);
+
+    // ===== 流式渲染节点（懒创建）=====
+    let streamWrapper = null, streamThinkBody = null, streamContent = null;
+    let fullContent = "";
+    let fullThinking = "";
+    let lastPaint = 0;
+
+    function ensureStreamNodes() {
+        if (streamWrapper && streamWrapper.isConnected) return;
+        document.getElementById("typing")?.remove();
+        if (!streamWrapper) {
+            streamWrapper = document.createElement("div");
+            streamWrapper.className = "msg-wrapper";
+            let thinkDiv = document.createElement("div");
+            thinkDiv.className = "msg-think open";
+            thinkDiv.innerHTML = `<div class="msg-think-toggle">▾ static ⋯</div><div class="msg-think-body"></div>`;
+            streamThinkBody = thinkDiv.querySelector(".msg-think-body");
+            streamContent = document.createElement("div");
+            streamContent.className = "msg-john";
+            streamWrapper.appendChild(thinkDiv);
+            streamWrapper.appendChild(streamContent);
+        }
+        if (targetChatId === activeChatId) {
+            chatbox.appendChild(streamWrapper);
+        }
+    }
+
+    function paint(force) {
+    if (targetChatId !== activeChatId) return;
+    let t = performance.now();
+    if (!force && t - lastPaint < 100) return;
+    lastPaint = t;
+    if (fullThinking) { ensureStreamNodes(); streamThinkBody.textContent = fullThinking; }
+    if (fullContent) {
+        // 正文输出中：流式渲染 + 跟随光标
+        ensureStreamNodes();
+        streamContent.innerHTML = renderMarkdown(fullContent) + '<span class="stream-cursor"></span>';
+    } else if (streamWrapper && streamWrapper.isConnected) {
+        // thinking 阶段、正文未开始：intercepting 动画在正文位置继续播
+        streamContent.innerHTML = `<div class="msg-loading" style="margin:0;">${interceptingHTML()}</div>`;
+    }
+    chatbox.scrollTop = chatbox.scrollHeight;
+}
+
 
     try {
         let response = await fetch(apiUrl + "/chat/completions", {
@@ -1265,45 +1250,104 @@ async function callAPI() {
                 model: model,
                 messages: messages,
                 max_tokens: maxTokens,
-                temperature: temp
+                temperature: temp,
+                stream: true
             }),
             signal: currentAbortController.signal
         });
 
-        let data = await response.json();
-        document.getElementById("typing")?.remove();
-
-            if (data.choices && data.choices[0]) {
-            let reply = data.choices[0].message.content;
-            // capture thinking from common OpenAI-compatible field names
-            let raw = data.choices[0].message;
-            let thinking = raw.reasoning_content || raw.reasoning || raw.thinking || null;
-            chatHistory.push({ role: "assistant", content: reply, thinking: thinking, time: Date.now() });
-
-            saveChatHistory();
-            renderChatbox();
-        } else if (data.error) {
-            showError(data.error.message);
-        } else {
-            showError("weird response. check console.");
-            console.log(data);
+        if (!response.ok) {
+            let errText = await response.text().catch(() => "");
+            throw new Error("HTTP " + response.status + (errText ? " — " + errText.slice(0, 200) : ""));
         }
+
+        const contentType = response.headers.get("content-type") || "";
+
+        if (contentType.includes("text/event-stream") && response.body) {
+            // ===== SSE 流式解析 =====
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                let lines = buffer.split("\n");
+                buffer = lines.pop();
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith("data:")) continue;
+                    const payload = trimmed.slice(5).trim();
+                    if (!payload || payload === "[DONE]") continue;
+                    try {
+                        const json = JSON.parse(payload);
+                        const delta = json.choices?.[0]?.delta;
+                        if (!delta) continue;
+                        if (delta.reasoning_content) fullThinking += delta.reasoning_content;
+                        else if (delta.reasoning) fullThinking += delta.reasoning;
+                        if (delta.content) fullContent += delta.content;
+                        paint(false);
+                    } catch (e) { /* 跳过坏 chunk */ }
+                }
+            }
+        } else {
+            // ===== fallback：代理不支持 stream，按普通 JSON 处理 =====
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message || "API error");
+            const parsed = extractThinking(data);
+            fullThinking = parsed.thinking || "";
+            fullContent = parsed.content || "";
+            paint(true);
+        }
+
+        // ===== 收尾：清理嵌在 content 里的 <think> 标签 =====
+        let finalThinking = fullThinking.trim() || null;
+        let finalContent = fullContent;
+        if (!finalThinking) {
+            const stripped = stripThinkTags(finalContent);
+            finalThinking = stripped.thinking;
+            finalContent = stripped.content;
+        }
+
+        if (!finalContent.trim() && !finalThinking) throw new Error("empty response from API");
+
+        streamWrapper?.remove();
+
+        // 写回「发起时的那个聊天」
+        const targetChat = allChats.find(c => c.id === targetChatId);
+        if (targetChat) {
+            targetChat.history.push({
+                role: "assistant",
+                content: finalContent,
+                thinking: finalThinking,
+                time: Date.now()
+            });
+            saveAllChats();
+            if (targetChatId === activeChatId) {
+                chatHistory = targetChat.history;
+                renderChatbox();
+            }
+        }
+
     } catch (err) {
         document.getElementById("typing")?.remove();
+        streamWrapper?.remove();
         if (err.name === "AbortError") {
-            let msgs = [
-                "*transmission interrupted*",
-                "*signal lost in transit*",
-                "*static crackle* ...connection severed"
-            ];
-            let msg = msgs[Math.floor(Math.random() * msgs.length)];
-            let interruptDiv = document.createElement("div");
-            interruptDiv.className = "msg-interrupted";
-            interruptDiv.innerHTML = `${msg} 📡 <span class="error-retry" onclick="retryAfterAbort(this)">🔄 regenerate</span>`;
-            chatbox.appendChild(interruptDiv);
-            chatbox.scrollTop = chatbox.scrollHeight;
+            if (targetChatId === activeChatId) {
+                let msgs = [
+                    "*transmission interrupted*",
+                    "*signal lost in transit*",
+                    "*static crackle* ...connection severed"
+                ];
+                let msg = msgs[Math.floor(Math.random() * msgs.length)];
+                let interruptDiv = document.createElement("div");
+                interruptDiv.className = "msg-interrupted";
+                interruptDiv.innerHTML = `${msg} 📡 <span class="error-retry" onclick="retryAfterAbort(this)">🔄 regenerate</span>`;
+                chatbox.appendChild(interruptDiv);
+                chatbox.scrollTop = chatbox.scrollHeight;
+            }
         } else {
-            showError(err.message);
+            if (targetChatId === activeChatId) showError(err.message);
         }
     }
     setGenerating(false);
@@ -1335,10 +1379,8 @@ async function sendMsg() {
     let input = document.getElementById("userInput");
     let text = input.value.trim();
     if (!text) return;
-
     chatHistory.push({ role: "user", content: text, time: Date.now() });
 
-    // auto-rename new chats
     let activeChat = getActiveChat();
     if (activeChat && chatHistory.length === 1 && activeChat.name.startsWith("Chat ")) {
         activeChat.name = text.slice(0, 30) + (text.length > 30 ? "..." : "");
@@ -1358,11 +1400,9 @@ function editMessage(index) {
     let chatbox = document.getElementById("chatbox");
     let wrapper = chatbox.querySelector(`.msg-wrapper[data-index="${index}"]`);
     if (!wrapper) return;
-
     let contentDiv = wrapper.querySelector(".msg-user, .msg-john");
     let actionsDiv = wrapper.querySelector(".msg-actions");
     if (!contentDiv) return;
-
     if (actionsDiv) actionsDiv.style.display = "none";
 
     let textarea = document.createElement("textarea");
@@ -1387,10 +1427,10 @@ function editMessage(index) {
     saveBtn.addEventListener("click", () => {
         chatHistory[index].content = textarea.value;
         saveChatHistory();
-        renderChatbox();
+        renderChatbox(true);
     });
     cancelBtn.addEventListener("click", () => {
-        renderChatbox();
+        renderChatbox(true);
     });
 }
 
@@ -1404,8 +1444,6 @@ async function regenerateMessage(index) {
 }
 
 // ===== EVENT LISTENERS =====
-
-// Send / Stop button
 document.getElementById("sendBtn").addEventListener("click", function() {
     if (isGenerating) {
         stopGeneration();
@@ -1414,38 +1452,34 @@ document.getElementById("sendBtn").addEventListener("click", function() {
     }
 });
 
-// FIXED: Enter to send, Shift+Enter for new line
 document.getElementById("userInput").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && e.shiftKey) {
         e.preventDefault();
         sendMsg();
     }
 });
 
-// Auto-resize textarea (caps at 5 lines then scrolls)
 document.getElementById("userInput").addEventListener("input", function() {
     this.style.height = "auto";
     this.style.height = Math.min(this.scrollHeight, 110) + "px";
 });
 
-// Phone answer enter key
 document.getElementById("phone-answer").addEventListener("keydown", function(e) {
     if (e.key === "Enter") tryUnlock();
 });
 
-// Chatbox: action buttons + mobile tap toggle
 document.getElementById("chatbox").addEventListener("click", function(e) {
-    // handle action button clicks
     let actionBtn = e.target.closest(".action-btn");
     if (actionBtn) {
         let wrapper = actionBtn.closest(".msg-wrapper");
         if (!wrapper) return;
         let index = parseInt(wrapper.dataset.index);
         let action = actionBtn.dataset.action;
+
         if (action === "delete") {
             chatHistory.splice(index, 1);
             saveChatHistory();
-            renderChatbox();
+            renderChatbox(true);
         } else if (action === "edit") {
             editMessage(index);
         } else if (action === "regenerate") {
@@ -1453,7 +1487,7 @@ document.getElementById("chatbox").addEventListener("click", function(e) {
         }
         return;
     }
-        // toggle thinking block (must return, so wrapper toggle doesn't fire)
+
     let thinkToggle = e.target.closest(".msg-think-toggle");
     if (thinkToggle) {
         let think = thinkToggle.closest(".msg-think");
@@ -1462,24 +1496,17 @@ document.getElementById("chatbox").addEventListener("click", function(e) {
         return;
     }
 
-    // don't toggle if clicking inside edit mode
     if (e.target.closest(".msg-edit-textarea, .msg-edit-btns")) return;
 
-    // mobile: toggle actions visibility
     let wrapper = e.target.closest(".msg-wrapper");
-
-    // close all others
     document.querySelectorAll(".msg-wrapper.actions-visible").forEach(w => {
         if (w !== wrapper) w.classList.remove("actions-visible");
     });
-
-    // toggle this one
     if (wrapper) {
         wrapper.classList.toggle("actions-visible");
     }
 });
 
-// click outside chatbox closes any visible action buttons
 document.addEventListener("click", function(e) {
     if (!e.target.closest("#chatbox")) {
         document.querySelectorAll(".msg-wrapper.actions-visible").forEach(w => {
@@ -1532,16 +1559,12 @@ function renderMemories() {
     containers.forEach(list => {
         if (!list) return;
         list.innerHTML = "";
-
-        // group by month
         let groups = {};
         memories.forEach(m => {
-            let month = m.date.slice(0, 7); // "2026/08"
+            let month = m.date.slice(0, 7);
             if (!groups[month]) groups[month] = [];
             groups[month].push(m);
         });
-
-        // sort months descending
         let sortedMonths = Object.keys(groups).sort().reverse();
         sortedMonths.forEach(month => {
             let groupDiv = document.createElement("div");
@@ -1566,16 +1589,13 @@ function renderMemories() {
     });
 }
 
-// NEW: 月份折叠/展开
 function toggleMemoryMonth(el) {
     let group = el.closest('.memory-month-group');
     if (!group) return;
     let collapsed = group.classList.toggle('collapsed');
     let count = group.querySelectorAll('.memory-entry').length;
-    el.innerHTML = (collapsed ? '▶ ' : '▼ ') + el.dataset.month +
-        ` <span style="float:right;color:#555;">${count}条</span>`;
+    el.innerHTML = (collapsed ? '▶ ' : '▼ ') + el.dataset.month + ` <span style="float:right;color:#555;">${count}条</span>`;
 }
-
 
 // ===== MOBILE SIDEBAR + VIEW SWITCHING =====
 function toggleSidebar() {
@@ -1606,7 +1626,6 @@ function returnSectionsToSidebar() {
                 sidebar.appendChild(el);
             }
         }
-        // Clear mobile inline display override
         if (el) {
             el.style.display = "";
         }
@@ -1615,44 +1634,33 @@ function returnSectionsToSidebar() {
 
 function showMobileView(view) {
     if (!isMobile()) return;
-    // close sidebar
     document.getElementById("sidebar").classList.remove("open");
     document.getElementById("sidebar-overlay").style.display = "none";
-
-    // return any moved sections first
     returnSectionsToSidebar();
 
-    // hide everything
     document.getElementById("chat-area").classList.add("hidden");
-        document.querySelectorAll(".mobile-view").forEach(v => {
+    document.querySelectorAll(".mobile-view").forEach(v => {
         v.classList.remove("active");
-        // clear mobile view bodies — except memory (its body may hold its own input)
         if (v.id === "mobile-memory") return;
         let body = v.querySelector(".mobile-view-body");
         if (body) body.innerHTML = "";
     });
 
-
-    // hide/show topbar title
     let title = document.getElementById("topbar-title");
     if (title) title.style.display = (view === "chat") ? "" : "none";
-
     document.body.classList.remove("phone-active");
 
     if (view === "chat") {
         document.getElementById("chat-area").classList.remove("hidden");
         return;
     }
-
     if (view === "signal") {
         let body = document.getElementById("signal-body");
-        // move actual elements (not clone — preserves event listeners)
         body.appendChild(document.getElementById("freq-section"));
         body.appendChild(document.getElementById("music-section"));
         body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
         document.getElementById("mobile-signal").classList.add("active");
     }
-
     if (view === "phone") {
         document.body.classList.add("phone-active");
         let body = document.getElementById("phone-body");
@@ -1662,10 +1670,8 @@ function showMobileView(view) {
         });
         document.getElementById("mobile-phone").classList.add("active");
         updatePhoneTime();
-        // 每次重新进入 Dead Drop，都从锁屏开始
         resetPhoneToLockScreen();
     }
-
     if (view === "memory") {
         let body = document.getElementById("memory-body");
         body.appendChild(document.getElementById("memory-section"));
@@ -1676,8 +1682,6 @@ function showMobileView(view) {
 }
 
 function addMemoryMobile() {
-    // FIXED: mobile input may have been wiped by view switching —
-    // fall back to the desktop input inside memory-section
     let input = document.getElementById("memory-input-mobile") || document.getElementById("memory-input");
     if (!input) return;
     let text = input.value.trim();
@@ -1689,7 +1693,6 @@ function addMemoryMobile() {
     input.value = "";
     renderMemories();
 }
-
 
 function openMemoryPanel() {
     if (isMobile()) {
