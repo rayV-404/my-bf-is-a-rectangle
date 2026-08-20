@@ -581,7 +581,88 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 .phone-entry-content { font-size: 13px; }
 .entry-time { font-size: 12px; }
 .note-cell-date { font-size: 12px; }
-.note-cell-title { font-size: 17px; }
-.note-cell-preview { font-size: 13px; }
+.note-cell-title { font-size: 16px; }
+.note-cell-preview { font-size: 12px; }
 .note-cell-full { font-size: 14px; }
 .note-cell-actions button { font-size: 13px; }
+/* ═════ NOTE & PURCHASES: HOVER EFFECTS ═════ */
+/* Notes app cells */
+.note-cell {
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.note-cell:hover {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Purchase records */
+.phone-entry {
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.phone-entry:hover {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* ═════ NOTE & PURCHASES: UNIFIED STYLE ═════ */
+/* Notes app cells - 统一为黑色背景 */
+.note-cell {
+    background: #000; /* 和 Purchases 一样 */
+    border: 1px solid rgba(255, 255, 255, 0.04); /* 默认深灰色边框 */
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Notes hover - 边框变蓝 */
+.note-cell:hover {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+}
+
+/* Notes active/click - 边框保持蓝色 */
+.note-cell:active {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Notes expanded state - 边框保持蓝色 */
+.note-cell-full {
+    border-top: 1px solid #2563eb !important; /* 展开时顶部边框变蓝 */
+    background: #000 !important; /* 展开内容保持黑色背景 */
+}
+
+
+/* Purchase hover and click effects */
+.phone-entry:hover {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+}
+
+.phone-entry:active {
+    animation: none !important;
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+}
+/* Brain dump entries - remove gray background, add subtle blue */
+.memory-entry {
+    background: rgba(37, 99, 235, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    animation: blue-flash 3s infinite;
+}
+
+.memory-entry:hover {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+}
+
+.memory-entry:active {
+    animation: none !important;
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+}
