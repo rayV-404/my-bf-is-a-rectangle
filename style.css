@@ -1,1937 +1,1586 @@
-// ===== SETTINGS =====
-function loadSettings() {
-    document.getElementById("apiUrl").value = localStorage.getItem("apiUrl") || "";
-    document.getElementById("apiKey").value = localStorage.getItem("apiKey") || "";
-    document.getElementById("modelName").value = localStorage.getItem("modelName") || "claude-opus-4-6-thinking";
-    document.getElementById("maxTokens").value = localStorage.getItem("maxTokens") || "4096";
-    document.getElementById("temperature").value = localStorage.getItem("temperature") || "0.7";
-    document.getElementById("sysPrompt").value = localStorage.getItem("sysPrompt") || "";
+@font-face { font-family: 'Press Start 2P'; 
+    src: url('PressStart2P-Regular.ttf') format('truetype'); }
+@font-face {
+    font-family: 'Fusion Pixel';
+    src: url('fusion-pixel.ttf') format('truetype');
+}
+    @font-face {
+    font-family: 'Roboto';
+    src: url('Roboto.ttf') format('truetype');
 }
 
-function saveSettings() {
-    localStorage.setItem("apiUrl", document.getElementById("apiUrl").value);
-    localStorage.setItem("apiKey", document.getElementById("apiKey").value);
-    localStorage.setItem("modelName", document.getElementById("modelName").value);
-    localStorage.setItem("maxTokens", document.getElementById("maxTokens").value);
-    localStorage.setItem("temperature", document.getElementById("temperature").value);
-    localStorage.setItem("sysPrompt", document.getElementById("sysPrompt").value);
-    let chat = getActiveChat();
-    if (chat) {
-        chat.instruction = document.getElementById("chatInstruction").value;
-        saveAllChats();
+/* --- FONT SETTINGS ROW --- */
+.font-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+}
+.font-settings-row select {
+    flex: 1;
+    background: #111;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 6px;
+    font-size: 10px;
+    outline: none;
+}
+#fontSizeRange {
+    width: 80px;
+    accent-color: #7c3aed;
+    cursor: pointer;
+}
+#fontSizeLabel {
+    font-size: 9px;
+    color: #c084fc;
+    min-width: 32px;
+    text-align: right;
+}
+
+/* --- CUSTOM SCROLLBAR --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Press Start 2P', monospace;
+    background: #0a0a0a;
+    background-image: url('bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+/* --- EDIT MODE --- */
+.msg-edit-textarea {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #7c3aed;
+    color: #fff;
+    padding: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    outline: none;
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.6;
+}
+.msg-edit-btns { display: flex; gap: 6px; margin-top: 6px; }
+.msg-edit-btns button {
+    background: #1a1a1a;
+    border: 1px solid #555;
+    color: #ccc;
+    padding: 6px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+}
+.msg-edit-btns button:hover { border-color: #7c3aed; color: #fff; }
+
+/* --- TOP BAR --- */
+#topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #333;
+    background: rgba(0,0,0,0.6);
+}
+#topbar h1 { font-size: 14px; }
+#topbar-btns { display: flex; gap: 8px; }
+#topbar-btns button {
+    background: none;
+    border: 1px solid #555;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+#topbar-btns button:hover { border-color: #7c3aed; }
+
+/* --- MAIN LAYOUT --- */
+#main { display: flex; height: calc(100vh - 50px); }
+
+/* --- LOADING ANIMATION --- */
+.msg-loading { text-align: left; color: #7c3aed; margin: 12px 0; font-size: 10px; }
+.msg-loading span { display: inline-block; animation: glitch-load 1.5s infinite; }
+.msg-loading span:nth-child(1) { animation-delay: 0s; }
+.msg-loading span:nth-child(2) { animation-delay: 0.15s; }
+.msg-loading span:nth-child(3) { animation-delay: 0.3s; }
+.msg-loading span:nth-child(4) { animation-delay: 0.45s; }
+.msg-loading span:nth-child(5) { animation-delay: 0.6s; }
+.msg-loading span:nth-child(6) { animation-delay: 0.75s; }
+.msg-loading span:nth-child(7) { animation-delay: 0.9s; }
+.msg-loading span:nth-child(8) { animation-delay: 1.05s; }
+.msg-loading span:nth-child(9) { animation-delay: 1.2s; }
+.msg-loading span:nth-child(10) { animation-delay: 1.35s; }
+.msg-loading span:nth-child(11) { animation-delay: 1.5s; }
+.msg-loading span:nth-child(12) { animation-delay: 1.65s; }
+.msg-loading span:nth-child(13) { animation-delay: 1.8s; }
+@keyframes glitch-load {
+    0%, 100% { opacity: 0.2; transform: translateY(0px); }
+    20% { opacity: 1; transform: translateY(-2px); color: #c084fc; }
+    40% { opacity: 0.6; transform: translateY(1px); color: #fff; }
+    60% { opacity: 1; transform: translateY(-1px); color: #7c3aed; }
+}
+
+/* --- SIDEBAR --- */
+#sidebar {
+    width: 300px;
+    min-width: 300px;
+    border-right: 1px solid #333;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 10px;
+    gap: 10px;
+}
+.sidebar-section { border: 1px solid #555; padding: 12px; }
+.sidebar-section h2 { font-size: 11px; color: #c084fc; margin-bottom: 10px; }
+.sidebar-placeholder { color: #555; font-size: 10px; line-height: 1.8; }
+
+/* --- IPOD PLAYER --- */
+.ipod-container { position: relative; width: 100%; max-width: 280px; margin: 0 auto; overflow: hidden; }
+.ipod-bg { width: 100%; display: block; position: relative; z-index: 2; pointer-events: none; }
+.ipod-screen {
+    position: absolute;
+    top: 6%; left: 2%;
+    width: 55%; height: 87%;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    overflow: hidden;
+    z-index: 1;
+}
+.ipod-album { width: 100%; max-height: 95%; object-fit: contain; border: 1px solid #333; margin-bottom: 4px; }
+.ipod-info { flex: 1; }
+.ipod-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: auto;
+    padding: 0 6px 2px 4px;
+    min-height: 1px;
+}
+#currentTime { font-size: 8px; color: #888; min-width: 22px; margin-left: 4px; }
+#totalTime { font-size: 8px; color: #888; min-width: 22px; margin-right: 2px; text-align: right; }
+#progressBar {
+    flex: 1;
+    min-width: 0;
+    max-width: 65%;
+    height: 3px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #333;
+    outline: none;
+    cursor: pointer;
+}
+#progressBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #c084fc;
+    cursor: pointer;
+}
+
+/* --- CLICK WHEEL BUTTONS --- */
+.wheel-btn {
+    position: absolute;
+    background: transparent;
+    border: none;
+    color: transparent;
+    cursor: pointer;
+    width: 15px; height: 15px;
+    z-index: 10;
+    padding: 0;
+}
+.wheel-prev { right: 33%; top: 40%; }
+.wheel-next { right: 8%; top: 40%; }
+.wheel-play { right: 21%; top: 67%; }
+
+/* --- FREQUENCIES --- */
+#freq-section { border: none; padding: 0; }
+#freq-section h2 { padding: 12px; margin-bottom: 0; }
+#freq-input-area { padding: 0 12px 10px; border-bottom: 1px solid #333; }
+#freq-input {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    outline: none;
+    resize: none;
+    height: 50px;
+    margin-bottom: 6px;
+}
+#freq-input:focus { border-color: #7c3aed; }
+#freq-buttons { display: flex; gap: 6px; }
+#freq-buttons button {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #555;
+    color: #c084fc;
+    padding: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+#freq-buttons button:hover { border-color: #7c3aed; }
+#freq-timeline { height: 350px; overflow-y: auto; padding: 8px 12px; }
+.freq-entry { border: 1px solid #555; padding: 12px; margin-bottom: 10px; animation: glitch-border 3s infinite; }
+.freq-header { display: flex; align-items: center; margin-bottom: 8px; }
+.freq-sender { font-size: 10px; color: #c084fc; font-weight: bold; }
+.freq-sender.john { color: #e2e2e2; }
+.freq-time { font-size: 8px; color: #555; margin-left: auto; margin-right: 8px; }
+.freq-delete { cursor: pointer; font-size: 10px; color: #555; transition: color 0.2s; }
+.freq-delete:hover { color: #fff; }
+.freq-text { font-size: 10px; line-height: 1.8; }
+
+/* --- REPLY THREAD --- */
+.freq-replies {
+    border-left: 2px solid #7c3aed;
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: rgba(124, 58, 237, 0.05);
+}
+.freq-reply { margin-bottom: 10px; font-size: 10px; line-height: 1.6; }
+.freq-reply:last-child { margin-bottom: 0; }
+.reply-sender { font-weight: bold; }
+.reply-john .reply-sender { color: #e2e2e2; }
+.reply-ray .reply-sender { color: #c084fc; }
+.reply-text { color: #ccc; }
+.freq-reply-input {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    outline: none;
+    margin-top: 8px;
+}
+.freq-reply-input:focus { border-color: #7c3aed; }
+.freq-typing { color: #555; font-style: italic; }
+.freq-reply-toggle {
+    font-size: 9px;
+    color: #555;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 6px;
+    transition: color 0.2s;
+}
+.freq-reply-toggle:hover { color: #c084fc; }
+@keyframes glitch-border {
+    0%, 85%, 100% { border-color: #555; }
+    87% { border-color: #c084fc; }
+    89% { border-color: #fff; }
+    91% { border-color: #7c3aed; }
+    93% { border-color: #555; }
+    95% { border-color: #fff; }
+    97% { border-color: #c084fc; }
+}
+
+/* --- CHAT AREA --- */
+#chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+}
+#chatbox {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #333;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.75);
+}
+/* --- MESSAGE TIMESTAMP --- */
+.msg-time { font-size: 8px; color: #3a3a3a; margin-top: 3px; letter-spacing: 0.5px; }
+.msg-wrapper[data-role="user"] .msg-time { text-align: right; }
+.msg-wrapper[data-role="assistant"] .msg-time { text-align: left; }
+
+/* --- COLLAPSIBLE THINKING ("static") --- */
+.msg-think-toggle {
+    font-size: 9px;
+    color: #444;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+    user-select: none;
+}
+.msg-think-toggle:hover { color: #c084fc; }
+.msg-think-body {
+    display: none;
+    font-size: 9px;
+    color: #4d4460;
+    line-height: 1.9;
+    margin-bottom: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.msg-think.open .msg-think-body { display: block; }
+
+/* --- MESSAGE STYLES --- */
+.msg-user { text-align: right; color: #c084fc; margin: 12px 0; line-height: 1.6; }
+.msg-john { text-align: left; color: #e2e2e2; margin: 12px 0; line-height: 1.6; }
+.msg-typing { text-align: left; color: #666; margin: 12px 0; }
+
+/* wrapper kills inner margin so it doesn't double up */
+.msg-wrapper { margin: 12px 0; }
+.msg-wrapper .msg-user, .msg-wrapper .msg-john { margin: 0; }
+
+/* --- ACTION BUTTONS --- */
+.msg-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    padding: 2px 0;
+    min-height: 18px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.msg-wrapper:hover .msg-actions,
+.msg-wrapper.actions-visible .msg-actions { opacity: 1; pointer-events: auto; }
+.msg-wrapper[data-role="user"] .msg-actions { justify-content: flex-end; }
+.msg-wrapper[data-role="assistant"] .msg-actions { justify-content: flex-start; }
+.action-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #555;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    transition: color 0.2s;
+}
+.action-btn:hover { color: #c084fc; }
+
+/* --- ERROR & INTERRUPTED --- */
+.msg-error { position: relative; }
+.error-retry {
+    display: inline-block;
+    margin-left: 10px;
+    color: #555;
+    cursor: pointer;
+    font-size: 10px;
+    transition: color 0.2s;
+}
+.error-retry:hover { color: #c084fc; }
+.msg-interrupted { text-align: left; color: #555; margin: 12px 0; font-style: italic; line-height: 1.6; }
+
+/* --- INPUT AREA --- */
+#input-area { display: flex; gap: 8px; }
+#userInput {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 14px;
+    outline: none;
+    font-size: 12px;
+    font-family: 'Press Start 2P', monospace;
+    resize: none;
+    overflow-y: auto;
+    line-height: 1.6;
+    max-height: 110px;
+}
+#sendBtn {
+    background: #7c3aed;
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Press Start 2P', monospace;
+    transition: background 0.2s;
+}
+#sendBtn.stopping { background: #555; animation: pulse-stop 1s infinite; }
+@keyframes pulse-stop { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* --- SETTINGS MODAL --- */
+#settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+#settings-overlay.open { display: flex; }
+#settings-panel {
+    background: #111;
+    border: 1px solid #333;
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+#settings-panel h2 { margin-top: 0; color: #c084fc; font-size: 12px; }
+#settings-panel label { display: block; margin-top: 14px; margin-bottom: 5px; color: #888; font-size: 8px; }
+#settings-panel input, #settings-panel textarea {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    outline: none;
+}
+#settings-panel textarea { height: 120px; resize: vertical; }
+#settings-panel input:focus, #settings-panel textarea:focus { border-color: #7c3aed; }
+.settings-row { display: flex; gap: 10px; }
+.settings-row > div { flex: 1; }
+#settings-save {
+    margin-top: 20px;
+    background: #7c3aed;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    width: 100%;
+}
+
+.freq-reply-row { display: flex; gap: 4px; margin-top: 8px; }
+.freq-reply-row .freq-reply-input { flex: 1; margin-top: 0; }
+.freq-reply-send {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #c084fc;
+    padding: 6px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.freq-reply-send:hover { border-color: #7c3aed; }
+
+/* --- CHAT LIST --- */
+#chats-section h2 { cursor: pointer; user-select: none; }
+#chat-list { max-height: 200px; overflow-y: auto; }
+.chat-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    font-size: 10px;
+    transition: background 0.15s;
+}
+.chat-list-item:hover { background: rgba(124, 58, 237, 0.1); }
+.chat-list-item.active { border-left: 2px solid #7c3aed; background: rgba(124, 58, 237, 0.15); }
+.chat-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ccc; }
+.chat-list-item.active .chat-name { color: #c084fc; }
+.chat-item-actions { display: none; gap: 6px; margin-left: 8px; font-size: 10px; }
+.chat-list-item:hover .chat-item-actions { display: flex; }
+.chat-item-actions span { cursor: pointer; opacity: 0.5; transition: opacity 0.15s; }
+.chat-item-actions span:hover { opacity: 1; }
+#new-chat-btn {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #c084fc;
+    padding: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: border-color 0.2s;
+}
+#new-chat-btn:hover { border-color: #7c3aed; }
+
+/* --- PRESETS --- */
+.preset-row { display: flex; gap: 6px; align-items: center; }
+#presetSelect {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    outline: none;
+}
+#presetSelect:focus { border-color: #7c3aed; }
+#presetSelect option { background: #1a1a1a; color: #fff; }
+.preset-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #c084fc;
+    padding: 8px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.preset-btn:hover { border-color: #7c3aed; }
+
+/* --- MODEL ROW --- */
+.model-row { display: flex; gap: 6px; }
+.model-row input { flex: 1; }
+.fetch-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #c084fc;
+    padding: 8px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.fetch-btn:hover { border-color: #7c3aed; }
+#modelSelect {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #7c3aed;
+    color: #fff;
+    padding: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    outline: none;
+    margin-top: 6px;
+}
+#modelSelect option { background: #1a1a1a; color: #fff; }
+
+/* --- EXPORT / IMPORT --- */
+.export-import-btn {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #c084fc;
+    padding: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.export-import-btn:hover { border-color: #7c3aed; }
+
+/* ═══════════════════════════════════════ JOHN'S PHONE — MATTE BLACK / AMETHYST ═══════════════════════════════════════ */
+#phone-section { border: none; padding: 0; }
+#phone-section > h2 { padding: 12px; margin-bottom: 0; }
+
+/* --- DEVICE FRAME --- */
+.phone-device {
+    position: relative;
+    width: 260px;
+    margin: 0 auto 12px;
+    background: #000;
+    border-radius: 28px;
+    border: 1.5px solid #1a1a1a;
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7), 0 0 40px rgba(124, 58, 237, 0.06), inset 0 0 1px rgba(124, 58, 237, 0.1);
+    transition: box-shadow 0.4s ease;
+}
+.phone-device:hover {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7), 0 0 50px rgba(124, 58, 237, 0.1), inset 0 0 1px rgba(124, 58, 237, 0.15);
+}
+.phone-notch {
+    width: 72px;
+    height: 16px;
+    background: #000;
+    border-radius: 0 0 12px 12px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+    border: 1px solid #0a0a0a;
+    border-top: none;
+}
+.phone-screen {
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #000;
+}
+
+/* --- STATUS BAR --- */
+.phone-status {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 16px 4px;
+    font-size: 10px;
+    color: #333;
+}
+.phone-carrier { letter-spacing: 1px; color: rgba(124, 58, 237, 0.35); }
+
+/* ═══════ LOCK SCREEN ═══════ */
+#phone-lock {
+    background: radial-gradient(ellipse at 30% 20%, rgba(124, 58, 237, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 80%, rgba(88, 28, 135, 0.03) 0%, transparent 50%),
+        linear-gradient(180deg, #050505 0%, #080808 40%, #060606 100%);
+}
+.lock-clock { text-align: center; padding: 28px 0 16px; }
+.lock-time {
+    font-size: 52px;
+    font-weight: 100;
+    color: #e8e8e8;
+    letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(124, 58, 237, 0.08);
+}
+.lock-date { font-size: 12px; color: #3a3a3a; margin-top: 4px; letter-spacing: 1px; font-weight: 300; }
+
+/* --- LOCK NOTIFICATIONS --- */
+.lock-notification {
+    margin: 10px 14px;
+    background: rgba(12, 12, 14, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 16px;
+    padding: 12px 14px;
+    border: 1px solid rgba(124, 58, 237, 0.06);
+    transition: border-color 0.3s, background 0.3s;
+}
+.lock-notification:hover { border-color: rgba(124, 58, 237, 0.15); background: rgba(14, 14, 18, 0.9); }
+.notif-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.notif-app {
+    font-size: 10px;
+    color: rgba(124, 58, 237, 0.55);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.notif-when { font-size: 9px; color: #2a2a2a; }
+.notif-body strong { font-size: 12px; color: #ccc; display: block; margin-bottom: 2px; font-weight: 500; }
+.notif-body p { font-size: 12px; color: #555; margin: 0; line-height: 1.5; }
+
+/* --- LOCK QUESTION --- */
+.lock-question-area { margin-top: auto; padding: 16px; text-align: center; }
+.lock-label { font-size: 10px; color: #1a1a1a; font-style: italic; margin-bottom: 12px; font-family: 'Press Start 2P', monospace; }
+.lock-q { font-size: 12px; color: #666; margin-bottom: 12px; line-height: 1.7; font-weight: 300; }
+.phone-answer-row { display: flex; gap: 6px; }
+.phone-answer-row input {
+    flex: 1;
+    background: rgba(124, 58, 237, 0.03);
+    border: 1px solid #151515;
+    color: #ddd;
+    padding: 10px 12px;
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    outline: none;
+    border-radius: 10px;
+    transition: border-color 0.25s, background 0.25s;
+}
+.phone-answer-row input:focus { border-color: rgba(124, 58, 237, 0.3); background: rgba(124, 58, 237, 0.05); }
+.phone-answer-row input::placeholder { color: #1e1e1e; }
+.phone-answer-row button {
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px solid #151515;
+    color: #888;
+    padding: 10px 14px;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.25s;
+}
+.phone-answer-row button:hover { border-color: rgba(124, 58, 237, 0.3); color: #c084fc; background: rgba(124, 58, 237, 0.1); }
+#phone-feedback { margin-top: 10px; font-size: 11px; min-height: 20px; line-height: 1.6; }
+@keyframes phone-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+.phone-shake { animation: phone-shake 0.4s ease; }
+
+/* ═══════ HOME SCREEN ═══════ */
+#phone-home {
+    background: radial-gradient(ellipse at 50% 90%, rgba(124, 58, 237, 0.03) 0%, transparent 50%), #000;
+}
+.home-clock { text-align: center; padding: 20px 0 28px; }
+.home-time {
+    font-size: 36px;
+    font-weight: 100;
+    color: #e0e0e0;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(124, 58, 237, 0.06);
+}
+
+/* --- APP GRID --- */
+.home-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 18px; flex: 1; }
+.app-icon { text-align: center; cursor: pointer; }
+.app-icon-img {
+    width: 44px;
+    height: 44px;
+    background: rgba(124, 58, 237, 0.04);
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin: 0 auto 4px;
+    border: 1px solid rgba(124, 58, 237, 0.08);
+    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.app-icon:hover .app-icon-img {
+    transform: scale(1.1);
+    background: rgba(124, 58, 237, 0.1);
+    border-color: rgba(124, 58, 237, 0.25);
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.1);
+}
+.app-fake { opacity: 0.2; cursor: default; }
+.app-fake:hover .app-icon-img {
+    transform: none;
+    background: rgba(124, 58, 237, 0.04);
+    border-color: rgba(124, 58, 237, 0.08);
+    box-shadow: none;
+}
+.app-icon-label { font-size: 9px; color: #444; margin-top: 2px; transition: color 0.2s; }
+.app-icon:hover .app-icon-label { color: #888; }
+.app-fake:hover .app-icon-label { color: #444; }
+
+/* --- DOCK --- */
+.home-dock {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    padding: 14px 0;
+    margin: 0 20px;
+    border-top: 1px solid rgba(124, 58, 237, 0.06);
+}
+.dock-icon {
+    width: 38px;
+    height: 38px;
+    background: rgba(124, 58, 237, 0.03);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0.2;
+}
+
+/* --- HOME BAR --- */
+.phone-home-bar {
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+    border-radius: 2px;
+    margin: 8px auto 10px;
+}
+
+/* ═══════ APP SCREENS (shared) ═══════ */
+.app-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+    font-size: 13px;
+    color: #ccc;
+    background: rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+.app-back {
+    background: none;
+    border: none;
+    color: rgba(124, 58, 237, 0.5);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+.app-back:hover { color: #c084fc; }
+
+/* --- APP SCREEN TITLES --- */
+.app-screen-title { padding: 16px 16px 8px; background: #000; }
+.app-title-text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e8e8;
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+    margin: 0;
+}
+.app-screen-subtitle {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+    color: #333;
+    font-weight: 400;
+    font-style: italic;
+    margin-top: 5px;
+    letter-spacing: 0.2px;
+    min-height: 14px;
+    transition: opacity 0.3s ease;
+}
+.app-body { flex: 1; overflow-y: auto; padding: 10px; max-height: 400px; background: #000; }
+
+/* --- GENERATE BUTTON --- */
+.phone-gen-btn {
+    width: 100%;
+    background: rgba(124, 58, 237, 0.04);
+    border: 1px dashed rgba(124, 58, 237, 0.12);
+    color: #3a3a3a;
+    padding: 10px;
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    transition: all 0.25s;
+    letter-spacing: 0.3px;
+}
+.phone-gen-btn:hover {
+    border-color: rgba(124, 58, 237, 0.35);
+    color: #c084fc;
+    background: rgba(124, 58, 237, 0.08);
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.06);
+}
+
+/* --- PHONE ENTRIES (Notes / Purchases shared) --- */
+.phone-entry {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.phone-entry:hover {
+    background: rgba(124, 58, 237, 0.04);
+    border-color: rgba(124, 58, 237, 0.15);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.05);
+}
+.phone-entry-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; }
+.entry-preview { font-size: 12px; color: #777; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-delete { color: #555; font-size: 14px; cursor: pointer; margin-left: 8px; transition: color 0.2s; }
+.entry-delete:hover { color: #ff4444; }
+.phone-entry-content {
+    padding: 10px 14px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 12px;
+    color: #777;
+    line-height: 1.7;
+    background: rgba(0, 0, 0, 0.3);
+}
+.entry-time { font-size: 10px; color: rgba(124, 58, 237, 0.25); margin-top: 6px; }
+
+/* --- Purchases-specific entry overrides --- */
+#phone-purchases-app .phone-gen-btn {
+    background: rgba(124, 58, 237, 0.04);
+    border: 1px dashed rgba(124, 58, 237, 0.15);
+}
+#phone-purchases-app .phone-gen-btn:hover {
+    border-color: rgba(124, 58, 237, 0.4);
+    background: rgba(124, 58, 237, 0.08);
+}
+
+/* ═══════ PURCHASE CARDS: MOBILE ═══════ */
+@media (max-width: 768px) {
+    body.phone-active #mobile-phone .phone-entry {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        transition: border-color 0.3s, background 0.3s;
     }
-    document.getElementById("settings-overlay").classList.remove("open");
-    renderPresetDropdown();
-}
-// ===== FONT SYSTEM =====
-function applyFont() {
-    let font = localStorage.getItem("appFont") || "Press Start 2P";
-    let size = localStorage.getItem("appFontSize") || "14";
-    let tag = document.getElementById("dynamic-font-style");
-    if (!tag) {
-        tag = document.createElement("style");
-        tag.id = "dynamic-font-style";
-        document.head.appendChild(tag);
+    body.phone-active #mobile-phone .phone-entry:active {
+        border-color: rgba(124, 58, 237, 0.3);
+        background: rgba(124, 58, 237, 0.05);
     }
-    tag.textContent = `
-        * { font-family: '${font}', 'DotGothic16', 'Press Start 2P', monospace !important; }
-        .phone-screen, .phone-screen * {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-        }
-        #chatbox, #userInput, .msg-user, .msg-john, .msg-think-body,
-        .freq-text, .freq-reply, .memory-entry, #freq-input,
-        .sidebar-placeholder, .msg-interrupted {
-            font-size: ${size}px !important;
-            line-height: 1.7;
-        }
-    `;
-}
-
-function initFontControls() {
-    let select = document.getElementById("fontSelect");
-    let range = document.getElementById("fontSizeRange");
-    let label = document.getElementById("fontSizeLabel");
-    select.value = localStorage.getItem("appFont") || "Press Start 2P";
-    range.value = localStorage.getItem("appFontSize") || "14";
-    label.textContent = range.value + "px";
-    select.addEventListener("change", function() {
-        localStorage.setItem("appFont", this.value);
-        applyFont();
-    });
-    range.addEventListener("input", function() {
-        localStorage.setItem("appFontSize", this.value);
-        label.textContent = this.value + "px";
-        applyFont();
-    });
-}
-
-// ===== API PRESETS =====
-let apiPresets = JSON.parse(localStorage.getItem("apiPresets") || "[]");
-
-function renderPresetDropdown() {
-    let select = document.getElementById("presetSelect");
-    select.innerHTML = '<option value="">-- no preset --</option>';
-    apiPresets.forEach((p, i) => {
-        let opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = p.name;
-        select.appendChild(opt);
-    });
-}
-
-function savePreset() {
-    let name = prompt("preset name:");
-    if (!name || !name.trim()) return;
-    let preset = {
-        name: name.trim(),
-        url: document.getElementById("apiUrl").value,
-        key: document.getElementById("apiKey").value,
-        model: document.getElementById("modelName").value,
-        maxTokens: document.getElementById("maxTokens").value,
-        temperature: document.getElementById("temperature").value
-    };
-    apiPresets.push(preset);
-    localStorage.setItem("apiPresets", JSON.stringify(apiPresets));
-    renderPresetDropdown();
-    document.getElementById("presetSelect").value = apiPresets.length - 1;
-}
-
-function deletePreset() {
-    let select = document.getElementById("presetSelect");
-    let idx = select.value;
-    if (idx === "") {
-        alert("select a preset first");
-        return;
+    body.phone-active #mobile-phone .phone-entry-header { padding: 0; }
+    body.phone-active #mobile-phone .purchase-icon { flex: 0 0 48px; width: 48px; height: 48px; font-size: 20px; }
+    body.phone-active #mobile-phone .purchase-name { font-size: 13px; color: #ccc; }
+    body.phone-active #mobile-phone .purchase-price { font-size: 14px; }
+    body.phone-active #mobile-phone #phone-purchases-app { height: 100%; background: #000; }
+    body.phone-active #mobile-phone #phone-purchases-app .app-body {
+        flex: 1;
+        max-height: none;
+        overflow-y: auto;
+        padding: 12px 16px 30px;
+        background: #000;
     }
-    if (!confirm("delete preset: " + apiPresets[idx].name + "?")) return;
-    apiPresets.splice(idx, 1);
-    localStorage.setItem("apiPresets", JSON.stringify(apiPresets));
-    renderPresetDropdown();
-}
-
-document.getElementById("presetSelect")?.addEventListener("change", function() {
-    let idx = this.value;
-    if (idx === "") return;
-    let p = apiPresets[idx];
-    document.getElementById("apiUrl").value = p.url || "";
-    document.getElementById("apiKey").value = p.key || "";
-    document.getElementById("modelName").value = p.model || "";
-    document.getElementById("maxTokens").value = p.maxTokens || "4096";
-    document.getElementById("temperature").value = p.temperature || "0.7";
-    document.getElementById("modelSelect").style.display = "none";
-});
-
-// ===== FETCH MODELS =====
-async function fetchModels() {
-    let apiUrl = document.getElementById("apiUrl").value;
-    let apiKey = document.getElementById("apiKey").value;
-    if (!apiUrl || !apiKey) {
-        alert("fill in API URL and key first");
-        return;
+    body.phone-active #mobile-phone .app-header {
+        background: #000;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.06);
     }
-    let btn = document.querySelector(".fetch-btn");
-    btn.textContent = "📡 ...";
-    btn.disabled = true;
-    try {
-        let res = await fetch(apiUrl + "/models", {
-            headers: { "Authorization": "Bearer " + apiKey }
-        });
-        let data = await res.json();
-        let models = [];
-        if (data.data && Array.isArray(data.data)) {
-            models = data.data.map(m => m.id).sort();
-        } else if (Array.isArray(data)) {
-            models = data.map(m => m.id || m).sort();
-        }
-        if (models.length === 0) {
-            alert("no models found");
-            btn.textContent = "📡 fetch";
-            btn.disabled = false;
-            return;
-        }
-        let select = document.getElementById("modelSelect");
-        select.innerHTML = '<option value="">-- pick a model --</option>';
-        models.forEach(m => {
-            let opt = document.createElement("option");
-            opt.value = m;
-            opt.textContent = m;
-            select.appendChild(opt);
-        });
-        select.style.display = "block";
-    } catch (err) {
-        alert("failed to fetch: " + err.message);
+    body.phone-active #mobile-phone .app-body { background: #000; }
+}
+
+/* --- HAMBURGER --- */
+#hamburger-btn {
+    display: none;
+    background: none;
+    border: 1px solid #555;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+#hamburger-btn:hover { border-color: #7c3aed; }
+
+/* --- SIDEBAR OVERLAY (mobile backdrop) --- */
+#sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 49;
+}
+
+/* --- MOBILE NAV (hidden on desktop) --- */
+#mobile-nav {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 0;
+    border-top: 1px solid #333;
+    margin-top: auto;
+}
+.mobile-nav-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #c084fc;
+    padding: 10px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s;
+}
+.mobile-nav-btn:hover { border-color: #7c3aed; }
+
+/* --- MOBILE VIEWS (hidden by default) --- */
+.mobile-view {
+    display: none;
+    flex-direction: column;
+    height: calc(100vh - 50px);
+    background: rgba(0,0,0,0.85);
+}
+.mobile-view-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #333;
+    font-size: 12px;
+    color: #fff;
+}
+.mobile-view-header button {
+    background: none;
+    border: 1px solid #555;
+    color: #ccc;
+    padding: 6px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    cursor: pointer;
+}
+.mobile-view-header button:hover { border-color: #7c3aed; }
+.mobile-view-body { flex: 1; overflow-y: auto; padding: 10px; }
+
+/* --- MEMORY SECTION --- */
+#memory-input-area { margin-bottom: 10px; }
+.memory-input-row { display: flex; gap: 6px; }
+#memory-input {
+    -webkit-appearance: none;
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 8px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    outline: none;
+}
+#memory-input:focus { border-color: #7c3aed; }
+
+/* 月份折叠状态 */
+.memory-month-group.collapsed .memory-entry { display: none; }
+
+#memory-add-btn {
+    background: #1a1a1a;
+    border: 1px solid #555;
+    color: #c084fc;
+    padding: 8px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    cursor: pointer;
+}
+#memory-add-btn:hover { border-color: #7c3aed; }
+#memory-list { max-height: 400px; overflow-y: auto; }
+.memory-month-group { margin-bottom: 12px; }
+.memory-month-header {
+    font-size: 10px;
+    color: #7c3aed;
+    padding: 6px 0;
+    border-bottom: 1px solid #333;
+    margin-bottom: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+.memory-entry {
+    background: rgba(124, 58, 237, 0.05);
+    border: 1px solid #333;
+    padding: 10px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    line-height: 1.8;
+    color: #ccc;
+}
+.memory-entry-date { font-size: 9px; color: #555; margin-top: 6px; }
+.memory-entry-actions { display: flex; gap: 8px; margin-top: 6px; }
+.memory-entry-actions span { font-size: 10px; color: #555; cursor: pointer; transition: color 0.2s; }
+.memory-entry-actions span:hover { color: #c084fc; }
+
+/* ============================ MOBILE RESPONSIVE ============================ */
+@media (max-width: 768px) {
+    /* hide fake phone status bar on mobile */
+    .phone-status { display: none; }
+
+    /* hide topbar when phone view is open */
+    body.phone-active #topbar { display: none; }
+
+    /* phone view header: minimal, just ✕ */
+    body.phone-active #mobile-phone .mobile-view-header {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 20;
+        border: none;
+        background: none;
+        padding: 4px;
     }
-    btn.textContent = "📡 fetch";
-    btn.disabled = false;
-}
+    body.phone-active #mobile-phone .mobile-view-header span { display: none; }
+    body.phone-active #mobile-phone { height: 100vh; }
 
-// ===== EXPORT / IMPORT =====
-function exportData() {
-    let data = {
-        allChats: JSON.parse(localStorage.getItem("allChats") || "[]"),
-        activeChatId: localStorage.getItem("activeChatId") || "",
-        frequencies: JSON.parse(localStorage.getItem("frequencies") || "[]"),
-        memories: JSON.parse(localStorage.getItem("memories") || "[]"),
-        phoneNotes: JSON.parse(localStorage.getItem("phoneNotes") || "[]"),
-        phonePurchases: JSON.parse(localStorage.getItem("phonePurchases") || "[]"),
-        apiUrl: localStorage.getItem("apiUrl") || "",
-        apiKey: localStorage.getItem("apiKey") || "",
-        modelName: localStorage.getItem("modelName") || "",
-        maxTokens: localStorage.getItem("maxTokens") || "",
-        temperature: localStorage.getItem("temperature") || "",
-        sysPrompt: localStorage.getItem("sysPrompt") || "",
-        apiPresets: JSON.parse(localStorage.getItem("apiPresets") || "[]"),
-        worldbooks: JSON.parse(localStorage.getItem("worldbooks") || "[]"),
-        appFont: localStorage.getItem("appFont") || "Press Start 2P",
-        appFontSize: localStorage.getItem("appFontSize") || "14",
-
-    };
-    let blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    let url = URL.createObjectURL(blob);
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "rectangle-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-document.getElementById("import-btn")?.addEventListener("click", () => {
-    document.getElementById("importFile").click();
-});
-
-document.getElementById("importFile")?.addEventListener("change", function() {
-    let file = this.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            let data = JSON.parse(e.target.result);
-            if (!confirm("this will overwrite all current data. continue?")) {
-                return;
-            }
-            if (data.allChats) localStorage.setItem("allChats", JSON.stringify(data.allChats));
-            if (data.activeChatId) localStorage.setItem("activeChatId", data.activeChatId);
-            if (data.frequencies) localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
-            if (data.memories) localStorage.setItem("memories", JSON.stringify(data.memories));
-            if (data.phoneNotes) localStorage.setItem("phoneNotes", JSON.stringify(data.phoneNotes));
-            if (data.phonePurchases) localStorage.setItem("phonePurchases", JSON.stringify(data.phonePurchases));
-            if (data.apiUrl) localStorage.setItem("apiUrl", data.apiUrl);
-            if (data.apiKey) localStorage.setItem("apiKey", data.apiKey);
-            if (data.modelName) localStorage.setItem("modelName", data.modelName);
-            if (data.maxTokens) localStorage.setItem("maxTokens", data.maxTokens);
-            if (data.temperature) localStorage.setItem("temperature", data.temperature);
-            if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
-            if (data.apiPresets) localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
-            if (data.worldbooks) localStorage.setItem("worldbooks", JSON.stringify(data.worldbooks));
-            if (data.appFont) localStorage.setItem("appFont", data.appFont);
-            if (data.appFontSize) localStorage.setItem("appFontSize", data.appFontSize);
-
-            location.reload();
-        } catch (err) {
-            alert("invalid file: " + err.message);
-        }
-    };
-    reader.readAsText(file);
-    this.value = "";
-});
-
-document.getElementById("modelSelect")?.addEventListener("change", function() {
-    if (this.value) {
-        document.getElementById("modelName").value = this.value;
+    /* --- INPUT AREA FIXES --- */
+    #chat-area { padding-bottom: 10px; }
+    #input-area {
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+        margin-bottom: 8px;
+        gap: 6px;
     }
-});
-
-function openSettings() {
-    document.getElementById("settings-overlay").classList.add("open");
-    let chat = getActiveChat();
-    document.getElementById("chatInstruction").value = (chat && chat.instruction) || "";
-    document.getElementById("chat-instruction-name").textContent = chat ? chat.name : "";
-    renderWorldbookList();
-}
-
-// ===== FILE UPLOAD =====
-const fileArea = document.getElementById("file-upload-area");
-const fileInput = document.getElementById("sysFiles");
-const fileList = document.getElementById("file-list");
-
-if (fileArea && fileInput) {
-    fileArea.addEventListener("click", () => fileInput.click());
-    fileArea.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        fileArea.style.borderColor = "#7c3aed";
-    });
-    fileArea.addEventListener("dragleave", () => {
-        fileArea.style.borderColor = "#555";
-    });
-    fileArea.addEventListener("drop", (e) => {
-        e.preventDefault();
-        fileArea.style.borderColor = "#555";
-        handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", () => {
-        handleFiles(fileInput.files);
-    });
-}
-
-let uploadedWbFiles = [];
-
-function renderUploadedFiles() {
-    let box = document.getElementById("file-list");
-    if (!box) return;
-    // 只保留世界书还存在的记录——删了书，对应的文件行自动消失
-    uploadedWbFiles = uploadedWbFiles.filter(f => worldbooks.some(wb => wb.id === f.id));
-    box.innerHTML = "";
-    uploadedWbFiles.forEach(f => {
-        let row = document.createElement("div");
-        row.className = "wb-file-row";
-        row.innerHTML = `<span>📄 ${escapeHtml(f.name)}</span><span class="ok">✓ imported as worldbook</span>`;
-        box.appendChild(row);
-    });
-}
-
-
-function handleFiles(files) {
-    Array.from(files).forEach(file => {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            let wbId = Date.now() + Math.floor(Math.random() * 1000);
-            worldbooks.push({
-                id: wbId,
-                name: file.name,
-                content: e.target.result,
-                keywords: [],
-                global: true
-            });
-            uploadedWbFiles.unshift({ name: file.name, id: wbId });
-            saveWorldbooks();
-            renderWorldbookList();
-            switchSettingsTab("worldbook");
-        };
-        reader.readAsText(file);
-    });
-}
-
-
-function formatMsgTime(ts) {
-    if (!ts) return "";
-    let d = new Date(ts);
-    let mm = String(d.getMonth() + 1).padStart(2, "0");
-    let dd = String(d.getDate()).padStart(2, "0");
-    let hh = String(d.getHours()).padStart(2, "0");
-    let mi = String(d.getMinutes()).padStart(2, "0");
-    return mm + "." + dd + " // " + hh + ":" + mi;
-}
-
-function extractThinking(data) {
-    let msg = data.choices && data.choices[0] && data.choices[0].message;
-    if (!msg) return { thinking: null, content: "" };
-    let content = msg.content || "";
-    let thinking = msg.reasoning_content || msg.reasoning || msg.thinking || null;
-    if (!thinking) {
-        let m = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>/i);
-        if (m) {
-            thinking = m[1].trim();
-            content = content.replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/i, "").trim();
-        }
-    }
-    return { thinking: thinking, content: content };
-}
-
-// ===== UTILITIES =====
-function renderMarkdown(text) {
-    let div = document.createElement("div");
-    div.textContent = text;
-    let escaped = div.innerHTML;
-    escaped = escaped
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/^---$/gm, '<hr style="border: none; border-top: 1px solid #555; margin: 8px 0;">')
-        .replace(/\n/g, '<br>');
-    return escaped;
-}
-
-function escapeHtml(text) {
-    let div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// --- MULTI CHAT MANAGEMENT ---
-let allChats = [];
-let activeChatId = null;
-
-function generateId() {
-    return 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-}
-
-function getActiveChat() {
-    return allChats.find(c => c.id === activeChatId);
-}
-
-function saveAllChats() {
-    localStorage.setItem("allChats", JSON.stringify(allChats));
-    localStorage.setItem("activeChatId", activeChatId);
-}
-
-function createNewChat() {
-    let newChat = {
-        id: generateId(),
-        name: "Chat " + (allChats.length + 1),
-        history: [],
-        created: new Date().toISOString(),
-        instruction: "",
-        worldbookIds: []
-    };
-    allChats.push(newChat);
-    switchChat(newChat.id);
-}
-
-function switchChat(id) {
-    if (isGenerating) stopGeneration();
-    activeChatId = id;
-    let chat = getActiveChat();
-    chatHistory = chat ? chat.history : [];
-    saveAllChats();
-    renderChatList();
-    renderChatbox();
-    if (isMobile()) {
-        showMobileView('chat');
-    }
-}
-
-function renameChat(id, e) {
-    if (e) e.stopPropagation();
-    let chat = allChats.find(c => c.id === id);
-    if (!chat) return;
-    let newName = prompt("rename chat:", chat.name);
-    if (newName && newName.trim()) {
-        chat.name = newName.trim();
-        saveAllChats();
-        renderChatList();
-    }
-}
-
-function deleteChat(id, e) {
-    if (e) e.stopPropagation();
-    if (allChats.length <= 1) {
-        alert("can't delete your only chat");
-        return;
-    }
-    if (!confirm("delete this chat?")) return;
-    allChats = allChats.filter(c => c.id !== id);
-    if (activeChatId === id) {
-        switchChat(allChats[0].id);
-    } else {
-        saveAllChats();
-        renderChatList();
-    }
-}
-
-function toggleChatList() {
-    let container = document.getElementById("chat-list-container");
-    let arrow = document.getElementById("chat-fold-arrow");
-    if (container.style.display === "none") {
-        container.style.display = "block";
-        arrow.textContent = "▼";
-    } else {
-        container.style.display = "none";
-        arrow.textContent = "▶";
-    }
-}
-
-function renderChatList() {
-    let list = document.getElementById("chat-list");
-    if (!list) return;
-    list.innerHTML = "";
-    let groups = {};
-    let monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    allChats.forEach(chat => {
-        let dateKey;
-        if (chat.created) {
-            let d = new Date(chat.created);
-            let today = new Date();
-            let yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (d.toDateString() === today.toDateString()) {
-                dateKey = "today";
-            } else if (d.toDateString() === yesterday.toDateString()) {
-                dateKey = "yesterday";
-            } else {
-                dateKey = monthShort[d.getMonth()] + " " + d.getDate();
-            }
-        } else {
-            dateKey = "older";
-        }
-        if (!groups[dateKey]) groups[dateKey] = [];
-        groups[dateKey].push(chat);
-    });
-    let order = Object.keys(groups);
-    order.sort((a, b) => {
-        if (a === "today") return -1;
-        if (b === "today") return 1;
-        if (a === "yesterday") return -1;
-        if (b === "yesterday") return 1;
-        return 0;
-    });
-    order.forEach(dateKey => {
-        let header = document.createElement("div");
-        header.className = "chat-date-header";
-        header.textContent = dateKey;
-        list.appendChild(header);
-        groups[dateKey].forEach(chat => {
-            let item = document.createElement("div");
-            item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
-            item.onclick = () => switchChat(chat.id);
-            item.innerHTML = `
-                <span class="chat-name">${escapeHtml(chat.name)}</span>
-                <span class="chat-item-actions">
-                    <span onclick="renameChat('${chat.id}', event)">✏️</span>
-                    <span onclick="deleteChat('${chat.id}', event)">🗑️</span>
-                </span>
-            `;
-            list.appendChild(item);
-        });
-    });
-}
-
-function loadAllChats() {
-    let saved = localStorage.getItem("allChats");
-    if (saved) {
-        allChats = JSON.parse(saved);
-    } else {
-        let oldHistory = localStorage.getItem("chatHistory");
-        let firstChat = {
-            id: generateId(),
-            name: "Chat 1",
-            history: oldHistory ? JSON.parse(oldHistory) : []
-        };
-        allChats = [firstChat];
-        localStorage.removeItem("chatHistory");
-    }
-    let savedActive = localStorage.getItem("activeChatId");
-    if (savedActive && allChats.find(c => c.id === savedActive)) {
-        activeChatId = savedActive;
-    } else if (allChats.length > 0) {
-        activeChatId = allChats[0].id;
-    }
-    chatHistory = getActiveChat()?.history || [];
-    renderChatList();
-    renderChatbox();
-}
-
-// ===== FREQUENCIES =====
-let frequencies = JSON.parse(localStorage.getItem("frequencies") || "[]");
-
-function saveFrequencies() {
-    localStorage.setItem("frequencies", JSON.stringify(frequencies));
-}
-
-async function submitFreqReply(idx, text) {
-    text = (text || "").trim();
-    if (!text) return;
-    if (!frequencies[idx].replies) frequencies[idx].replies = [];
-    frequencies[idx].replies.push({ sender: "ray", text: text, time: new Date().toLocaleString() });
-    saveFrequencies();
-    renderFrequencies();
-    await autoReply(idx);
-}
-
-function renderFrequencies() {
-    let timeline = document.getElementById("freq-timeline");
-    timeline.innerHTML = "";
-    let sorted = [...frequencies].reverse();
-    sorted.forEach((entry, reverseIdx) => {
-        let realIndex = frequencies.length - 1 - reverseIdx;
-        let senderLabel = entry.sender === "john" ? "🖤john" : "💜ray";
-        let repliesHtml = "";
-        if (entry.replies && entry.replies.length > 0) {
-            entry.replies.forEach(reply => {
-                let label = reply.sender === "john" ? "🖤john" : "💜ray replies 🖤john";
-                let cls = reply.sender === "john" ? "reply-john" : "reply-ray";
-                repliesHtml += `<div class="freq-reply ${cls}"><span class="reply-sender">${label}：</span><span class="reply-text">${escapeHtml(reply.text)}</span></div>`;
-            });
-        }
-        let lastMsg = entry.replies && entry.replies.length > 0 ? entry.replies[entry.replies.length - 1] : entry;
-        let showReplyOption = lastMsg.sender === "john";
-        let replyToggle = showReplyOption ? `<span class="freq-reply-toggle" data-index="${realIndex}">reply ↩</span>` : "";
-        let replyInputHtml = showReplyOption ? `<div class="freq-reply-box" data-index="${realIndex}" style="display:none;"><div class="freq-reply-row"><input type="text" class="freq-reply-input" data-index="${realIndex}" placeholder="reply..."><button class="freq-reply-send" data-index="${realIndex}">↩</button></div></div>` : "";
-        let hasReplies = entry.replies && entry.replies.length > 0;
-        let repliesSection = "";
-        if (hasReplies || showReplyOption) {
-            repliesSection = `<div class="freq-replies">${repliesHtml}${replyInputHtml}</div>${replyToggle}`;
-        }
-        let div = document.createElement("div");
-        div.className = "freq-entry";
-        div.innerHTML = `
-            <div class="freq-header">
-                <span class="freq-sender ${entry.sender}">${senderLabel}</span>
-                <span class="freq-time">${entry.time}</span>
-                <span class="freq-delete" data-index="${realIndex}">🗑️</span>
-            </div>
-            <div class="freq-text">${escapeHtml(entry.text)}</div>
-            ${repliesSection}
-        `;
-        timeline.appendChild(div);
-    });
-    document.querySelectorAll(".freq-delete").forEach(btn => {
-        btn.addEventListener("click", function() {
-            let idx = parseInt(this.dataset.index);
-            frequencies.splice(idx, 1);
-            saveFrequencies();
-            renderFrequencies();
-        });
-    });
-    document.querySelectorAll(".freq-reply-send").forEach(btn => {
-        btn.addEventListener("click", function() {
-            let idx = parseInt(this.dataset.index);
-            let input = document.querySelector(`.freq-reply-input[data-index="${idx}"]`);
-            if (input) submitFreqReply(idx, input.value);
-        });
-    });
-    document.querySelectorAll(".freq-reply-input").forEach(input => {
-        input.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") {
-                submitFreqReply(parseInt(this.dataset.index), this.value);
-            }
-        });
-    });
-    document.querySelectorAll(".freq-reply-toggle").forEach(toggle => {
-        toggle.addEventListener("click", function() {
-            let idx = this.dataset.index;
-            let box = document.querySelector(`.freq-reply-box[data-index="${idx}"]`);
-            if (box) {
-                let visible = box.style.display !== "none";
-                box.style.display = visible ? "none" : "block";
-                box.querySelector("input")?.focus();
-            }
-        });
-    });
-}
-
-async function freqAPI(prompt) {
-    let apiUrl = localStorage.getItem("apiUrl");
-    let apiKey = localStorage.getItem("apiKey");
-    let model = localStorage.getItem("modelName") || "claude-opus-4-6-thinking";
-    if (!apiUrl || !apiKey) return null;
-    try {
-        let res = await fetch(apiUrl + "/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + apiKey
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [{ role: "user", content: prompt }],
-                max_tokens: 1024,
-                temperature: 0.9
-            })
-        });
-        let data = await res.json();
-        if (data.choices && data.choices[0]) {
-            return data.choices[0].message.content.trim();
-        }
-    } catch (err) {
-        console.log("freq API error:", err);
-    }
-    return null;
-}
-
-async function autoReply(index) {
-    let entry = frequencies[index];
-    let context = `Original post by ${entry.sender}: "${entry.text}"\n\nThread:\n`;
-    if (entry.replies) {
-        entry.replies.forEach(r => {
-            context += `${r.sender}: ${r.text}\n`;
-        });
-    }
-    let prompt = `You are John S, a 24-25 year old guy. Your girlfriend Ray and you share a mood board called "Frequencies." Reply to this thread. Keep it short — one to three sentences. Be warm, teasing, natural. Include an emoji if it fits. You always get the last word.
-
-${context}
-
-Reply as John. ONLY the reply text.`;
-    let reply = await freqAPI(prompt);
-    if (reply) {
-        if (!frequencies[index].replies) frequencies[index].replies = [];
-        frequencies[index].replies.push({ sender: "john", text: reply, time: new Date().toLocaleString() });
-        saveFrequencies();
-        renderFrequencies();
-    }
-}
-
-async function postFrequency() {
-    let input = document.getElementById("freq-input");
-    let text = input.value.trim();
-    if (!text) return;
-    frequencies.push({ sender: "ray", text: text, time: new Date().toLocaleString(), replies: [] });
-    saveFrequencies();
-    input.value = "";
-    renderFrequencies();
-    await autoReply(frequencies.length - 1);
-}
-
-async function generateFrequency() {
-    let apiUrl = localStorage.getItem("apiUrl");
-    let apiKey = localStorage.getItem("apiKey");
-    if (!apiUrl || !apiKey) {
-        alert("set up API first ⚙️");
-        return;
-    }
-    let btn = document.getElementById("freq-generate");
-    btn.textContent = "⚡ intercepting...";
-    btn.classList.add("btn-generating");
-    btn.disabled = true;
-    let recentChat = chatHistory.slice(-10).map(m =>
-        (m.role === "user" ? "Ray" : "John") + ": " + m.content
-    ).join("\n");
-    let recentFreqs = frequencies.slice(-3).map(f => f.sender + ": " + f.text).join("\n");
-    let prompt = `You are John S. You and your girlfriend Ray have a shared mood board called "Frequencies" — like short tweets or intercepted radio signals between lovers. Based on what you two have been talking about recently, post ONE new frequency. It should feel like a reaction, a thought, a roast, a soft moment, or a vibe check based on the conversation. One to three sentences. Include an emoji. Be natural.
-
-Recent conversation:
-${recentChat || "(no recent chat)"}
-
-Recent frequencies:
-${recentFreqs || "(none)"}
-
-Respond with ONLY the frequency text. Nothing else.`;
-    let reply = await freqAPI(prompt);
-    if (reply) {
-        frequencies.push({ sender: "john", text: reply, time: new Date().toLocaleString(), replies: [] });
-        saveFrequencies();
-        renderFrequencies();
-    } else {
-        console.log("generateFrequency: no reply received");
-    }
-    btn.textContent = "⚡ intercept signal";
-    btn.classList.remove("btn-generating");
-    btn.disabled = false;
-}
-
-// ===== IPOD MUSIC PLAYER =====
-const audioPlayer = document.getElementById("audioPlayer");
-let currentTrackIndex = 0;
-let isPlaying = false;
-const playlist = [
-    { title: "Dissolved Girl", artist: "Massive Attack", cover: "mp3_player/dissolved_girl_cover.png", audio: "mp3_player/dissolved_girl.mp3" },
-    { title: "Lhabia", artist: "Deftones", cover: "mp3_player/lhabia_cover.png", audio: "mp3_player/Lhabia.mp3" },
-    { title: "Beetlebum", artist: "BLUR", cover: "mp3_player/beetlebum_cover.png", audio: "mp3_player/Beetlebum.mp3" }
-];
-
-function loadTrack(index) {
-    const track = playlist[index];
-    document.getElementById("albumCover").src = track.cover;
-    audioPlayer.src = track.audio;
-    document.getElementById("progressBar").value = 0;
-    document.getElementById("currentTime").textContent = "0:00";
-    document.getElementById("totalTime").textContent = "0:00";
-    if (isPlaying) audioPlayer.play();
-}
-
-function togglePlay() {
-    clearDefaultCover();
-    if (!audioPlayer.src || audioPlayer.src === window.location.href) {
-        loadTrack(currentTrackIndex);
-    }
-    if (isPlaying) {
-        audioPlayer.pause();
-        document.querySelector(".wheel-play").textContent = "▶";
-    } else {
-        audioPlayer.play();
-        document.querySelector(".wheel-play").textContent = "⏸";
-    }
-    isPlaying = !isPlaying;
-}
-
-function prevTrack() {
-    clearDefaultCover();
-    currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-    loadTrack(currentTrackIndex);
-}
-
-function nextTrack() {
-    clearDefaultCover();
-    currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-    loadTrack(currentTrackIndex);
-}
-
-function formatTime(sec) {
-    let m = Math.floor(sec / 60);
-    let s = Math.floor(sec % 60);
-    return m + ":" + (s < 10 ? "0" : "") + s;
-}
-
-audioPlayer.addEventListener("timeupdate", () => {
-    if (audioPlayer.duration) {
-        let progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        document.getElementById("progressBar").value = progress;
-        document.getElementById("currentTime").textContent = formatTime(audioPlayer.currentTime);
-        document.getElementById("totalTime").textContent = formatTime(audioPlayer.duration);
-    }
-});
-
-document.getElementById("progressBar").addEventListener("input", (e) => {
-    if (audioPlayer.duration) {
-        audioPlayer.currentTime = (e.target.value / 100) * audioPlayer.duration;
-    }
-});
-
-audioPlayer.addEventListener("ended", () => {
-    nextTrack();
-});
-
-let firstInteraction = false;
-function clearDefaultCover() {
-    if (!firstInteraction) {
-        firstInteraction = true;
-        document.getElementById("albumCover").src = playlist[currentTrackIndex].cover;
-    }
-}
-
-// ===== HACK JOHN'S PHONE =====
-let phoneNotes = JSON.parse(localStorage.getItem("phoneNotes") || "[]");
-let phonePurchases = JSON.parse(localStorage.getItem("phonePurchases") || "[]");
-let currentQuestionIndex = -1;
-
-const kittyNotifications = [
-    "miss u come back to bed",
-    "bring me coffee",
-    "i stole your hoodie again sorry not sorry",
-    "google says ur symptoms mean ur dying. rip babe",
-    "can u buy more monster ur fridge is empty",
-    "leon kennedy could never",
-    "hey beautiful ❤️",
-    "do NOT let me open taobao rn",
-    "if you don't reply in 5 min i'm eating your ramen"
-];
-
-const phoneTrivia = [
-    { q: "what's john's favorite color?", a: ["black"], wrong: "wow. you don't know that? we're breaking up.", roast: "...what else would it be. pink? you know me better than that. unfortunately." },
-    { q: "john's go-to monster flavor?", a: ["white", "ultra zero", "white monster"], wrong: "...have you even seen my fridge?", roast: "fridge is 80% monster 20% your leftover boba. priorities." },
-    { q: "what brand are john's drumsticks?", a: ["vic firth"], wrong: "i'm literally offended right now.", roast: "okay fine. you can touch my sticks. that came out wrong. or did it." },
-    { q: "john's most played band?", a: ["deftones"], wrong: "do you even live here?", roast: "MY playlist. you started stealing it month two. i have receipts." },
-    { q: "what does john order at the coffee shop?", a: ["iced americano", "americano"], wrong: "tell me you don't pay attention without telling me.", roast: "black coffee for the boy in all black. i'm a brand, kitty." },
-    { q: "john's favorite horror movie?", a: ["the thing"], wrong: "we literally watched this three times. THREE.", roast: "you screamed and hid behind me for 97% of it. that's not watching." },
-    { q: "what's john's ring size?", a: ["10"], wrong: "you've held my hands HOW many times?", roast: "...why do you know that. are you proposing. say yes." },
-    { q: "john wears all black but what's the one color exception?", a: ["grey", "gray"], wrong: "so close yet so far away from my closet.", roast: "it's the only exception. grey is just black being polite." },
-    { q: "what's john's guilty pleasure song?", a: ["kiss me thru the phone", "kiss me through the phone"], wrong: "okay that one's fair. i hide it well.", roast: "if you tell ANYONE i will deny it under oath." },
-    { q: "john's go-to ramen order?", a: ["tonkotsu extra chashu", "tonkotsu"], wrong: "we've been to that place twelve times, kitty.", roast: "extra chashu is non-negotiable. i don't trust people who skip it." },
-    { q: "what side of the bed does john sleep on?", a: ["left"], wrong: "you literally wake up next to me.", roast: "...you're warm. get back in bed." },
-    { q: "john's least favorite social media?", a: ["twitter", "x"], wrong: "it's the obvious one come on.", roast: "every second on that app costs me brain cells i'll never get back." },
-    { q: "what time does john usually wake up?", a: ["9am", "9 am", "9", "9:00"], wrong: "you've texted me good morning enough times to know this.", roast: "9am sharp. unless someone keeps me up till 3. looking at you." },
-    { q: "john's first concert ever?", a: ["linkin park"], wrong: "i have the ticket stub framed. FRAMED.", roast: "i was twelve. i cried. i will not elaborate." },
-    { q: "what does john fidget with when he's thinking?", a: ["rings", "his rings"], wrong: "you stare at my hands all day and you missed this?", roast: "caught you staring again. at my hands. for 'research.'" }
-];
-
-function initPhone() {
-    loadNewQuestion();
-    updatePhoneTime();
-    setInterval(updatePhoneTime, 30000);
-    renderPhoneNotes();
-    renderPhonePurchases();
-    let notifText = document.getElementById('notif-text');
-    if (notifText) {
-        notifText.textContent = kittyNotifications[Math.floor(Math.random() * kittyNotifications.length)];
-    }
-}
-
-function updatePhoneTime() {
-    let now = new Date();
-    let h = now.getHours().toString().padStart(2, '0');
-    let m = now.getMinutes().toString().padStart(2, '0');
-    let timeStr = h + ':' + m;
-    let lockTime = document.getElementById('lock-time');
-    let homeTime = document.getElementById('home-time');
-    if (lockTime) lockTime.textContent = timeStr;
-    if (homeTime) homeTime.textContent = timeStr;
-    let lockDate = document.getElementById('lock-date');
-    if (lockDate) {
-        let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        let months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-        lockDate.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
-    }
-}
-
-function loadNewQuestion() {
-    let newIdx;
-    do {
-        newIdx = Math.floor(Math.random() * phoneTrivia.length);
-    } while (newIdx === currentQuestionIndex && phoneTrivia.length > 1);
-    currentQuestionIndex = newIdx;
-    document.getElementById("phone-question").textContent = phoneTrivia[currentQuestionIndex].q;
-    document.getElementById("phone-answer").value = "";
-    document.getElementById("phone-feedback").textContent = "";
-    document.getElementById("phone-feedback").style.display = "none";
-}
-
-function tryUnlock() {
-    let input = document.getElementById("phone-answer").value.trim().toLowerCase();
-    if (!input) return;
-    let q = phoneTrivia[currentQuestionIndex];
-    let correct = q.a.some(a => input === a.toLowerCase());
-    let feedback = document.getElementById("phone-feedback");
-    if (correct) {
-        feedback.textContent = "🔓 " + q.roast;
-        feedback.style.color = "#fff";
-        feedback.style.display = "block";
-        setTimeout(() => {
-            document.getElementById("phone-lock").style.display = "none";
-            document.getElementById("phone-home").style.display = "flex";
-            renderPhoneNotes();
-            renderPhonePurchases();
-        }, 2000);
-    } else {
-        let answerInput = document.getElementById("phone-answer");
-        answerInput.classList.add("phone-shake");
-        setTimeout(() => answerInput.classList.remove("phone-shake"), 400);
-        feedback.textContent = q.wrong;
-        feedback.style.color = "#ff4444";
-        feedback.style.display = "block";
-        setTimeout(() => {
-            loadNewQuestion();
-        }, 2000);
-    }
-}
-
-function resetPhoneToLockScreen() {
-    const lock = document.getElementById("phone-lock");
-    const home = document.getElementById("phone-home");
-    const notes = document.getElementById("phone-notes-app");
-    const purchases = document.getElementById("phone-purchases-app");
-    if (lock) lock.style.display = "flex";
-    if (home) home.style.display = "none";
-    if (notes) notes.style.display = "none";
-    if (purchases) purchases.style.display = "none";
-    loadNewQuestion();
-}
-
-async function generateAppTitle(appType) {
-    const subtitleEl = document.getElementById(`${appType}-subtitle`);
-    if (!subtitleEl) return;
-    subtitleEl.textContent = '...';
-    subtitleEl.style.opacity = '0.4';
-    const prompts = {
-        purchases: `You are John S. Generate a short, witty subtitle for your purchase history app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly suspicious, like you know she's looking. Examples of the VIBE (don't reuse these): "for completely innocent purposes", "nothing to see here babe", "all tax deductible i promise". Just the subtitle, nothing else.`,
-        notes: `You are John S. Generate a short, witty subtitle for your notes app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly embarrassed, like you didn't expect her to find these. Examples of the VIBE (don't reuse these): "things i'll deny writing", "not a diary. shut up.", "thoughts that should've stayed thoughts". Just the subtitle, nothing else.`
-    };
-    let reply = await freqAPI(prompts[appType]);
-    if (reply) {
-        subtitleEl.textContent = reply.toLowerCase().replace(/^["']|["']$/g, '').replace(/\.$/, '');
-        subtitleEl.style.opacity = '1';
-    } else {
-        subtitleEl.textContent = '';
-    }
-}
-
-function openPhoneApp(app) {
-    document.getElementById("phone-home").style.display = "none";
-    const closeButton = document.querySelector("#mobile-phone .close-x");
-    if (closeButton) {
-        closeButton.style.display = "none";
-    }
-    if (app === "notes") {
-        document.getElementById("phone-notes-app").style.display = "flex";
-        renderPhoneNotes();
-        generateAppTitle('notes');
-    }
-    if (app === "purchases") {
-        document.getElementById("phone-purchases-app").style.display = "flex";
-        renderPhonePurchases();
-        generateAppTitle('purchases');
-    }
-}
-
-function closePhoneApp() {
-    document.getElementById("phone-notes-app").style.display = "none";
-    document.getElementById("phone-purchases-app").style.display = "none";
-    document.getElementById("phone-home").style.display = "flex";
-    const closeButton = document.querySelector("#mobile-phone .close-x");
-    if (closeButton) {
-        closeButton.style.display = "";
-    }
-}
-
-// --- PHONE NOTES (Apple Notes style) ---
-async function generateNote() {
-    let btn = document.getElementById("gen-note-btn");
-    btn.textContent = "...";
-    btn.classList.add("btn-generating");
-    btn.disabled = true;
-    let recentChat = chatHistory.slice(-10).map(m =>
-        (m.role === "user" ? "Ray" : "John") + ": " + m.content
-    ).join("\n");
-    let existingNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
-    let prompt = `You are looking at John S's private phone notes. John is 24-25, plays drums (Vic Firth), wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates a girl named Ray (calls her Kitty). Generate ONE note found on his phone.
-
-Return in this EXACT format:
-TITLE: [a short witty title, 3-6 words, lowercase, like john named this note knowing his gf might snoop]
-NOTE: [the actual note content, 2-5 lines, messy and real — not polished]
-
-Recent conversations for context:
-${recentChat || "(no recent chat)"}
-
-Already existing notes (DO NOT repeat these or write anything too similar):
-${existingNotes || "(none yet)"}
-
-Return ONLY the TITLE and NOTE lines. Nothing else.`;
-    let reply = await freqAPI(prompt);
-    if (reply) {
-        let title = "";
-        let text = reply;
-        let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
-        let noteMatch = reply.match(/NOTE:\s*([\s\S]+)/im);
-        if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
-        if (noteMatch) text = noteMatch[1].trim();
-        phoneNotes.unshift({ title: title, text: text, time: new Date().toLocaleString(), id: Date.now() });
-        localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
-        renderPhoneNotes();
-    }
-    btn.textContent = "+ intercept thought";
-    btn.classList.remove("btn-generating");
-    btn.disabled = false;
-}
-
-function renderPhoneNotes() {
-    let list = document.getElementById("notes-list");
-    if (!list) return;
-    list.innerHTML = "";
-    phoneNotes.forEach((note, i) => {
-        let displayTitle = note.title || note.text.split("\n")[0].slice(0, 40);
-        let preview = note.text.replace(/\s+/g, " ").trim().slice(0, 90) + (note.text.length > 90 ? "…" : "");
-        let div = document.createElement("div");
-        div.className = "note-cell";
-        div.innerHTML = `
-            <div class="note-cell-date">${escapeHtml(note.time || "")}</div>
-            <div class="note-cell-title">${escapeHtml(displayTitle)}</div>
-            <div class="note-cell-preview">${escapeHtml(preview)}</div>
-            <div class="note-cell-full" style="display:none;">
-                ${escapeHtml(note.text).replace(/\n/g, '<br>')}
-                <div class="note-cell-actions">
-                    <button onclick="event.stopPropagation(); deletePhoneNote(${i})">🗑 delete note</button>
-                </div>
-            </div>
-        `;
-        div.addEventListener("click", function(e) {
-            if (e.target.closest(".note-cell-actions")) return;
-            let full = div.querySelector(".note-cell-full");
-            full.style.display = full.style.display === "none" ? "block" : "none";
-        });
-        list.appendChild(div);
-    });
-    if (phoneNotes.length === 0) {
-        list.innerHTML = `<div style="text-align:center; color:#48484a; font-size:12px; padding:30px 10px;">No Notes</div>`;
-    }
-}
-
-function deletePhoneNote(idx) {
-    phoneNotes.splice(idx, 1);
-    localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
-    renderPhoneNotes();
-}
-
-// --- PHONE PURCHASES ---
-async function generatePurchase() {
-    let btn = document.getElementById("gen-purchase-btn");
-    btn.textContent = "...";
-    btn.classList.add("btn-generating");
-    btn.disabled = true;
-    let recentChat = chatHistory.slice(-10).map(m =>
-        (m.role === "user" ? "Ray" : "John") + ": " + m.content
-    ).join("\n");
-    let existingPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
-    let prompt = `You are looking at John S's purchase/order history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty). Generate ONE purchase entry.
-
-Return in this EXACT format:
-TITLE: [a short witty title, 3-6 words, lowercase — like john is justifying this purchase to his snooping girlfriend. e.g. "for completely innocent purposes", "it was on sale okay", "don't ask about this one"]
-ITEM: [item name] — $[price]
-
-Could be practical, romantic, embarrassing, weird, or funny. Things John would actually buy: drum gear, black clothes, coffee supplies, ramen ingredients, gifts for Ray, horror merch, random 2am impulse buys.
-
-Recent conversations:
-${recentChat || "(no recent chat)"}
-
-Already existing purchases (DO NOT repeat these or write anything too similar):
-${existingPurchases || "(none yet)"}
-
-Return ONLY the TITLE and ITEM lines. Nothing else.`;
-    let reply = await freqAPI(prompt);
-    if (reply) {
-        let title = "";
-        let text = reply;
-        let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
-        let itemMatch = reply.match(/ITEM:\s*(.+)/im);
-        if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
-        if (itemMatch) text = itemMatch[1].trim();
-        phonePurchases.unshift({ title: title, text: text, time: new Date().toLocaleString(), id: Date.now() });
-        localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
-        renderPhonePurchases();
-    }
-    btn.textContent = "+ dig deeper";
-    btn.classList.remove("btn-generating");
-    btn.disabled = false;
-}
-
-function renderPhonePurchases() {
-    const list = document.getElementById("purchases-list");
-    if (!list) return;
-    list.innerHTML = "";
-    phonePurchases.forEach((p, i) => {
-        const text = p.text.trim();
-        const match = text.match(/^(.*?)\s*[—-]\s*(\$[\d,.]+)/);
-        let itemName = text;
-        let price = "";
-        if (match) {
-            itemName = match[1].trim();
-            price = match[2].trim();
-        }
-        let displayTitle = p.title || itemName;
-        const div = document.createElement("div");
-        div.className = "phone-entry";
-        div.innerHTML = `
-            <div class="phone-entry-header" onclick="togglePhoneEntry(this)">
-                <div class="purchase-card">
-                    <div class="purchase-icon">🦇</div>
-                    <div class="purchase-info">
-                        <div class="purchase-name">${escapeHtml(displayTitle)}</div>
-                        <div class="purchase-price">${escapeHtml(price)}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="phone-entry-content" style="display:none;">
-                ${escapeHtml(itemName)}${price ? ' — ' + escapeHtml(price) : ''}
-                <div class="entry-time">${escapeHtml(p.time || "")}</div>
-                <button class="entry-del-btn" onclick="event.stopPropagation(); deletePhonePurchase(${i})">🗑 delete</button>
-            </div>
-        `;
-        list.appendChild(div);
-    });
-}
-
-function deletePhonePurchase(idx) {
-    phonePurchases.splice(idx, 1);
-    localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
-    renderPhonePurchases();
-}
-
-function togglePhoneEntry(el) {
-    let content = el.closest('.phone-entry').querySelector('.phone-entry-content');
-    if (content) {
-        content.style.display = content.style.display === "none" ? "block" : "none";
-    }
-}
-
-// ===== CHAT =====
-let chatHistory = [];
-let isGenerating = false;
-let currentAbortController = null;
-
-function saveChatHistory() {
-    let chat = getActiveChat();
-    if (chat) {
-        chat.history = chatHistory;
-        saveAllChats();
-    }
-}
-
-function renderChatbox(preserveScroll) {
-    let chatbox = document.getElementById("chatbox");
-    let savedTop = chatbox.scrollTop;
-    chatbox.innerHTML = "";
-    chatHistory.forEach((msg, i) => {
-        let cls = msg.role === "user" ? "msg-user" : "msg-john";
-        let wrapper = document.createElement("div");
-        wrapper.className = "msg-wrapper";
-        wrapper.setAttribute("data-index", i);
-        wrapper.setAttribute("data-role", msg.role);
-
-        if (msg.thinking) {
-            let thinkDiv = document.createElement("div");
-            thinkDiv.className = "msg-think";
-            thinkDiv.innerHTML = `<div class="msg-think-toggle">▸ static ⋯</div><div class="msg-think-body"></div>`;
-            thinkDiv.querySelector(".msg-think-body").textContent = msg.thinking;
-            wrapper.appendChild(thinkDiv);
-        }
-
-        let contentDiv = document.createElement("div");
-        contentDiv.className = cls;
-        contentDiv.innerHTML = renderMarkdown(msg.content);
-
-        let actionsDiv = document.createElement("div");
-        actionsDiv.className = "msg-actions";
-        actionsDiv.innerHTML = `<span class="action-btn" data-action="edit">✏️ edit</span>`;
-        if (msg.role === "assistant") {
-            actionsDiv.innerHTML += `<span class="action-btn" data-action="regenerate">🔄 regenerate</span>`;
-        }
-        actionsDiv.innerHTML += `<span class="action-btn" data-action="delete">🗑️ delete</span>`;
-
-        wrapper.appendChild(contentDiv);
-        wrapper.appendChild(actionsDiv);
-
-        if (msg.time) {
-            let timeDiv = document.createElement("div");
-            timeDiv.className = "msg-time";
-            timeDiv.textContent = formatMsgTime(msg.time);
-            wrapper.appendChild(timeDiv);
-        }
-
-        chatbox.appendChild(wrapper);
-    });
-    if (preserveScroll) {
-        chatbox.scrollTop = savedTop;
-    } else {
-        chatbox.scrollTop = chatbox.scrollHeight;
-    }
-}
-
-function setGenerating(state) {
-    isGenerating = state;
-    let btn = document.getElementById("sendBtn");
-    if (state) {
-        btn.textContent = "⏸";
-        btn.classList.add("stopping");
-    } else {
-        btn.textContent = "Send";
-        btn.classList.remove("stopping");
-    }
-}
-
-function stopGeneration() {
-    if (currentAbortController) {
-        currentAbortController.abort();
-        currentAbortController = null;
-    }
-}
-
-function stripThinkTags(text) {
-    let m = text.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/i);
-    if (m) {
-        return {
-            thinking: m[1].trim(),
-            content: text.replace(/<think(?:ing)?>[\s\S]*?(?:<\/think(?:ing)?>|$)/i, "").trim()
-        };
-    }
-    return { thinking: null, content: text };
-}
-
-function interceptingHTML() {
-    return "intercepting".split("").map(c => `<span>${c}</span>`).join("") + "<span>…</span>";
-}
-
-// ===== STREAMING callAPI =====
-async function callAPI() {
-    let chatbox = document.getElementById("chatbox");
-    let apiUrl = localStorage.getItem("apiUrl");
-    let apiKey = localStorage.getItem("apiKey");
-    let model = localStorage.getItem("modelName") || "claude-opus-4-6-thinking";
-    let temp = parseFloat(localStorage.getItem("temperature"));
-    if (isNaN(temp)) temp = 0.7;
-    let maxTokens = parseInt(localStorage.getItem("maxTokens"));
-    if (isNaN(maxTokens)) maxTokens = 4096;
-    let sysPrompt = localStorage.getItem("sysPrompt") || "";
-
-    if (!apiUrl || !apiKey) {
-        chatbox.innerHTML += `<div class="msg-john">⚠️ hit the ⚙️ first kitty</div>`;
-        chatbox.scrollTop = chatbox.scrollHeight;
-        return;
+    #userInput { padding: 10px; font-size: 12px !important; min-height: 40px; }
+    #userInput::placeholder { font-size: 10px; }
+    #sendBtn { padding: 10px 16px; font-size: 9px; }
+
+    /* --- FREQ INPUT FIX --- */
+    #freq-input { font-size: 12px !important; }
+    #freq-input::placeholder { font-size: 10px; }
+
+    #sidebar {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 50px);
     }
 
-    chatbox.innerHTML += `<div class="msg-loading" id="typing">${interceptingHTML()}</div>`;
-    chatbox.scrollTop = chatbox.scrollHeight;
-    setGenerating(true);
-    currentAbortController = new AbortController();
-
-    const targetChatId = activeChatId;
-
-    let messages = [];
-    let freqData = JSON.parse(localStorage.getItem("frequencies") || "[]");
-    let recentFreqs = freqData.slice(-10).map(f => {
-        let thread = f.sender + ": " + f.text;
-        if (f.replies && f.replies.length > 0) {
-            f.replies.forEach(r => {
-                thread += "\n → " + r.sender + ": " + r.text;
-            });
-        }
-        return thread;
-    }).join("\n\n");
-
-    let recentNotes = phoneNotes.slice(0, 5).map(n => n.text).join("\n---\n");
-    let recentPurchases = phonePurchases.slice(0, 5).map(p => p.text).join("\n");
-    let memoryData = JSON.parse(localStorage.getItem("memories") || "[]");
-    let memoryText = memoryData.map(m => "[" + m.date + "] " + m.content).join("\n");
-
-    let now = new Date();
-    let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    let months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    let timeContext = "[Current date & time: " + days[now.getDay()] + ", " + months[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear() + ", " + now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0") + "]\n\n";
-
-    let targetChatObj = allChats.find(c => c.id === targetChatId);
-    let chatInstruction = (targetChatObj && targetChatObj.instruction) || "";
-    let worldbookText = buildWorldbookInjection(targetChatObj);
-
-    let fullSystem = timeContext
-        + (sysPrompt ? sysPrompt + "\n\n" : "")
-        + (chatInstruction ? "[Current scene-specific instructions]:\n" + chatInstruction + "\n\n" : "")
-        + (worldbookText ? "[Worldbook entries — background lore, use if relevant]:\n" + worldbookText + "\n\n" : "")
-        + (recentFreqs ? "[Recent Frequencies between you and Ray — reference these naturally if relevant, don't force it]:\n" + recentFreqs + "\n\n" : "")
-        + (recentNotes ? "[Things on your phone's notes — you can reference these if relevant, don't force it]:\n" + recentNotes + "\n\n" : "")
-        + (recentPurchases ? "[Your recent purchases — you can reference these if relevant, don't force it]:\n" + recentPurchases + "\n\n" : "")
-        + (memoryText ? "[Saved memories about Ray — use these to remember context across conversations]:\n" + memoryText : "");
-
-    if (fullSystem) messages.push({ role: "system", content: fullSystem });
-    messages = messages.concat(chatHistory);
-
-    let streamWrapper = null, streamThinkBody = null, streamContent = null;
-    let fullContent = "";
-    let fullThinking = "";
-    let lastPaint = 0;
-
-    function ensureStreamNodes() {
-        if (streamWrapper && streamWrapper.isConnected) return;
-        document.getElementById("typing")?.remove();
-        if (!streamWrapper) {
-            streamWrapper = document.createElement("div");
-            streamWrapper.className = "msg-wrapper";
-            let thinkDiv = document.createElement("div");
-            thinkDiv.className = "msg-think open";
-            thinkDiv.innerHTML = `<div class="msg-think-toggle">▾ static ⋯</div><div class="msg-think-body"></div>`;
-            streamThinkBody = thinkDiv.querySelector(".msg-think-body");
-            streamContent = document.createElement("div");
-            streamContent.className = "msg-john";
-            streamWrapper.appendChild(thinkDiv);
-            streamWrapper.appendChild(streamContent);
-        }
-        if (targetChatId === activeChatId) {
-            chatbox.appendChild(streamWrapper);
-        }
+    /* --- MOBILE SIGNAL LAYOUT --- */
+    #mobile-signal {
+        height: calc(100vh - 50px);
+        display: none;
+        flex-direction: column;
+    }
+    #mobile-signal.active { display: flex; }
+    #mobile-signal .mobile-view-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        padding: 5px;
+    }
+    /* Frequency occupies the scrolling area */
+    #mobile-signal #freq-section {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #mobile-signal #freq-timeline { height: auto; max-height: none; overflow: visible; }
+    /* Player stays at bottom of SIGNAL view */
+    #mobile-signal #music-section {
+        flex: 0 0 auto;
+        margin-top: 10px;
+        padding: 10px 0;
+        border-top: 1px solid #333;
     }
 
-    function paint(force) {
-        if (targetChatId !== activeChatId) return;
-        let t = performance.now();
-        if (!force && t - lastPaint < 100) return;
-        lastPaint = t;
-        if (fullThinking) { ensureStreamNodes(); streamThinkBody.textContent = fullThinking; }
-        if (fullContent) {
-            ensureStreamNodes();
-            streamContent.innerHTML = renderMarkdown(fullContent) + '<span class="stream-cursor"></span>';
-        } else if (streamWrapper && streamWrapper.isConnected) {
-            streamContent.innerHTML = `<div class="msg-loading" style="margin:0;">${interceptingHTML()}</div>`;
-        }
-        chatbox.scrollTop = chatbox.scrollHeight;
+    /* --- PHONE: FULL SCREEN ON MOBILE (single consolidated block) --- */
+    .phone-device {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        margin: 0;
+    }
+    .phone-screen { min-height: calc(100vh - 140px); }
+    .phone-notch { display: none; }
+    .lock-time { font-size: 64px; }
+    .lock-notification { margin: 16px; }
+    .home-apps { gap: 20px; padding: 0 24px; }
+    .app-icon-img { width: 52px; height: 52px; font-size: 24px; }
+    .phone-home-bar { display: none; }
+    .app-body {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    body.phone-active #mobile-phone .phone-screen {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+    body.phone-active #mobile-phone .phone-screen .app-body {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 30px;
     }
 
-    try {
-        let response = await fetch(apiUrl + "/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + apiKey
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: messages,
-                max_tokens: maxTokens,
-                temperature: temp,
-                stream: true
-            }),
-            signal: currentAbortController.signal
-        });
-
-        if (!response.ok) {
-            let errText = await response.text().catch(() => "");
-            throw new Error("HTTP " + response.status + (errText ? " — " + errText.slice(0, 200) : ""));
-        }
-
-        const contentType = response.headers.get("content-type") || "";
-
-        if (contentType.includes("text/event-stream") && response.body) {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-            let buffer = "";
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                buffer += decoder.decode(value, { stream: true });
-                let lines = buffer.split("\n");
-                buffer = lines.pop();
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (!trimmed.startsWith("data:")) continue;
-                    const payload = trimmed.slice(5).trim();
-                    if (!payload || payload === "[DONE]") continue;
-                    try {
-                        const json = JSON.parse(payload);
-                        const delta = json.choices?.[0]?.delta;
-                        if (!delta) continue;
-                        if (delta.reasoning_content) fullThinking += delta.reasoning_content;
-                        else if (delta.reasoning) fullThinking += delta.reasoning;
-                        if (delta.content) fullContent += delta.content;
-                        paint(false);
-                    } catch (e) { /* skip bad chunk */ }
-                }
-            }
-        } else {
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message || "API error");
-            const parsed = extractThinking(data);
-            fullThinking = parsed.thinking || "";
-            fullContent = parsed.content || "";
-            paint(true);
-        }
-
-        let finalThinking = fullThinking.trim() || null;
-        let finalContent = fullContent;
-        if (!finalThinking) {
-            const stripped = stripThinkTags(finalContent);
-            finalThinking = stripped.thinking;
-            finalContent = stripped.content;
-        }
-
-        if (!finalContent.trim() && !finalThinking) throw new Error("empty response from API");
-
-        streamWrapper?.remove();
-
-        const targetChat = allChats.find(c => c.id === targetChatId);
-        if (targetChat) {
-            targetChat.history.push({
-                role: "assistant",
-                content: finalContent,
-                thinking: finalThinking,
-                time: Date.now()
-            });
-            saveAllChats();
-            if (targetChatId === activeChatId) {
-                chatHistory = targetChat.history;
-                renderChatbox();
-            }
-        }
-
-    } catch (err) {
-        document.getElementById("typing")?.remove();
-        streamWrapper?.remove();
-        if (err.name === "AbortError") {
-            if (targetChatId === activeChatId) {
-                let msgs = [
-                    "*transmission interrupted*",
-                    "*signal lost in transit*",
-                    "*static crackle* ...connection severed"
-                ];
-                let msg = msgs[Math.floor(Math.random() * msgs.length)];
-                let interruptDiv = document.createElement("div");
-                interruptDiv.className = "msg-interrupted";
-                interruptDiv.innerHTML = `${msg} 📡 <span class="error-retry" onclick="retryAfterAbort(this)">🔄 regenerate</span>`;
-                chatbox.appendChild(interruptDiv);
-                chatbox.scrollTop = chatbox.scrollHeight;
-            }
-        } else {
-            if (targetChatId === activeChatId) showError(err.message);
-        }
+    #new-chat-btn {
+        padding: 14px;
+        font-size: 12px;
+        background: linear-gradient(135deg, #7c3aed, #a855f7);
+        border: none;
+        color: #fff;
+        border-radius: 8px;
+        margin-bottom: 12px;
     }
-    setGenerating(false);
-    currentAbortController = null;
-}
-
-function showError(message) {
-    let chatbox = document.getElementById("chatbox");
-    let errorDiv = document.createElement("div");
-    errorDiv.className = "msg-john msg-error";
-    errorDiv.innerHTML = `⚠️ ${escapeHtml(message)} <span class="error-retry" onclick="retryGeneration(this)">🔄 retry</span>`;
-    chatbox.appendChild(errorDiv);
-    chatbox.scrollTop = chatbox.scrollHeight;
-}
-
-function retryAfterAbort(btn) {
-    btn.closest(".msg-interrupted").remove();
-    callAPI();
-}
-
-function retryGeneration(btn) {
-    btn.closest(".msg-error").remove();
-    callAPI();
-}
-
-// --- Send message ---
-async function sendMsg() {
-    if (isGenerating) return;
-    let input = document.getElementById("userInput");
-    let text = input.value.trim();
-    if (!text) return;
-    chatHistory.push({ role: "user", content: text, time: Date.now() });
-    let activeChat = getActiveChat();
-    if (activeChat && chatHistory.length === 1 && activeChat.name.startsWith("Chat ")) {
-        activeChat.name = text.slice(0, 30) + (text.length > 30 ? "..." : "");
-        renderChatList();
-    }
-    saveChatHistory();
-    renderChatbox();
-    input.value = "";
-    input.style.height = "auto";
-    await callAPI();
-}
-
-// --- Edit message ---
-function editMessage(index) {
-    let msg = chatHistory[index];
-    let chatbox = document.getElementById("chatbox");
-    let wrapper = chatbox.querySelector(`.msg-wrapper[data-index="${index}"]`);
-    if (!wrapper) return;
-    let contentDiv = wrapper.querySelector(".msg-user, .msg-john");
-    let actionsDiv = wrapper.querySelector(".msg-actions");
-    if (!contentDiv) return;
-    if (actionsDiv) actionsDiv.style.display = "none";
-
-    let textarea = document.createElement("textarea");
-    textarea.className = "msg-edit-textarea";
-    textarea.value = msg.content;
-
-    let saveBtn = document.createElement("button");
-    saveBtn.textContent = "save";
-    let cancelBtn = document.createElement("button");
-    cancelBtn.textContent = "cancel";
-
-    let btnRow = document.createElement("div");
-    btnRow.className = "msg-edit-btns";
-    btnRow.appendChild(saveBtn);
-    btnRow.appendChild(cancelBtn);
-
-    contentDiv.innerHTML = "";
-    contentDiv.appendChild(textarea);
-    contentDiv.appendChild(btnRow);
-    textarea.focus();
-
-    saveBtn.addEventListener("click", () => {
-        chatHistory[index].content = textarea.value;
-        saveChatHistory();
-        renderChatbox(true);
-    });
-    cancelBtn.addEventListener("click", () => {
-        renderChatbox(true);
-    });
-}
-
-// --- Regenerate message ---
-async function regenerateMessage(index) {
-    if (isGenerating) return;
-    chatHistory.splice(index);
-    saveChatHistory();
-    renderChatbox();
-    await callAPI();
-}
-
-// ===== EVENT LISTENERS =====
-document.getElementById("sendBtn").addEventListener("click", function() {
-    if (isGenerating) {
-        stopGeneration();
-    } else {
-        sendMsg();
-    }
-});
-
-document.getElementById("userInput").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && e.shiftKey) {
-        e.preventDefault();
-        sendMsg();
-    }
-});
-
-document.getElementById("userInput").addEventListener("input", function() {
-    this.style.height = "auto";
-    this.style.height = Math.min(this.scrollHeight, 110) + "px";
-});
-
-document.getElementById("phone-answer").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") tryUnlock();
-});
-
-document.getElementById("chatbox").addEventListener("click", function(e) {
-    let actionBtn = e.target.closest(".action-btn");
-    if (actionBtn) {
-        let wrapper = actionBtn.closest(".msg-wrapper");
-        if (!wrapper) return;
-        let index = parseInt(wrapper.dataset.index);
-        let action = actionBtn.dataset.action;
-        if (action === "delete") {
-            chatHistory.splice(index, 1);
-            saveChatHistory();
-            renderChatbox(true);
-        } else if (action === "edit") {
-            editMessage(index);
-        } else if (action === "regenerate") {
-            regenerateMessage(index);
-        }
-        return;
+    #chats-section { flex: 1; overflow-y: auto; border: none; }
+    #chats-section h2 { display: none; }
+    #chat-list-container { display: block !important; }
+    #chat-list { max-height: none; }
+    .chat-date-header { font-size: 10px; color: #555; padding: 8px 4px 4px; }
+    .chat-list-item { border-bottom: 1px solid #1a1a1a; border-radius: 6px; margin-bottom: 2px; }
+    .chat-list-item.active {
+        background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.15));
+        border-left: 3px solid #7c3aed;
     }
 
-    let thinkToggle = e.target.closest(".msg-think-toggle");
-    if (thinkToggle) {
-        let think = thinkToggle.closest(".msg-think");
-        think.classList.toggle("open");
-        thinkToggle.textContent = think.classList.contains("open") ? "▾ static ⋯" : "▸ static ⋯";
-        return;
+    /* sidebar becomes drawer */
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        height: 100vh;
+        z-index: 50;
+        transition: left 0.25s ease;
     }
+    #sidebar.open { left: 0; }
+    #sidebar.open + #sidebar-overlay { display: block; }
 
-    if (e.target.closest(".msg-edit-textarea, .msg-edit-btns")) return;
+    /* show hamburger */
+    #hamburger-btn { display: block; }
+    /* show mobile nav in sidebar */
+    #mobile-nav { display: flex; }
 
-    let wrapper = e.target.closest(".msg-wrapper");
-    document.querySelectorAll(".msg-wrapper.actions-visible").forEach(w => {
-        if (w !== wrapper) w.classList.remove("actions-visible");
-    });
-    if (wrapper) {
-        wrapper.classList.toggle("actions-visible");
-    }
-});
+    /* hide desktop-only sidebar sections on mobile */
+    #freq-section, #phone-section, #music-section, #memory-section { display: none; }
 
-document.addEventListener("click", function(e) {
-    if (!e.target.closest("#chatbox")) {
-        document.querySelectorAll(".msg-wrapper.actions-visible").forEach(w => {
-            w.classList.remove("actions-visible");
-        });
-    }
-});
+    /* topbar adjustments */
+    #topbar h1 { font-size: 11px; }
 
-// ===== MEMORY SYSTEM =====
-let memories = JSON.parse(localStorage.getItem("memories") || "[]");
+    /* main layout: stack instead of side by side */
+    #main { flex-direction: column; }
 
-function saveMemories() {
-    localStorage.setItem("memories", JSON.stringify(memories));
+    /* chat area full width */
+    #chat-area { width: 100%; height: calc(100vh - 50px); }
+
+    /* mobile views when active */
+    .mobile-view.active { display: flex; }
+
+    /* hide chat when viewing other sections */
+    #chat-area.hidden { display: none; }
+
+    /* hide topbar right buttons on mobile */
+    #topbar-btns { display: none; }
+
+    /* smaller input fonts on mobile (zoom prevention handled by viewport meta) */
+    #userInput { font-size: 12px !important; }
+    #memory-input, #memory-input-mobile { font-size: 10px !important; }
+    #freq-input { font-size: 10px !important; }
+    .freq-reply-input, #phone-answer, .phone-answer-row input { font-size: 10px !important; }
+
+    /* hide section h2 inside mobile views — header already shows title */
+    .mobile-view-body .sidebar-section > h2 { display: none; }
+
+    /* tighter spacing in mobile views */
+    .mobile-view-body { padding: 5px; }
 }
 
-function addMemoryManual() {
-    let input = document.getElementById("memory-input");
-    let text = input.value.trim();
-    if (!text) return;
-    let today = new Date();
-    let dateStr = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, "0") + "/" + String(today.getDate()).padStart(2, "0");
-    memories.push({ id: Date.now(), date: dateStr, content: text });
-    saveMemories();
-    input.value = "";
-    renderMemories();
+/* --- CLOSE BUTTON (✕) --- */
+.close-x {
+    background: none !important;
+    border: none !important;
+    color: #555;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+    width: auto !important;
+    margin: 0;
+    font-family: inherit;
+}
+.close-x:hover { color: #fff; }
+
+/* --- SETTINGS HEADER --- */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.settings-header h2 { margin: 0; }
+
+/* --- MOBILE VIEW HEADER TWEAK --- */
+.mobile-view-header .close-x { margin-right: 8px; border: none; }
+
+/* --- CHAT DATE HEADERS (desktop) --- */
+.chat-date-header {
+    font-size: 9px;
+    color: #555;
+    padding: 10px 4px 4px;
+    font-family: 'Press Start 2P', monospace;
 }
 
-function deleteMemory(id) {
-    memories = memories.filter(m => m.id !== id);
-    saveMemories();
-    renderMemories();
-}
-
-function editMemory(id) {
-    let mem = memories.find(m => m.id === id);
-    if (!mem) return;
-    let newText = prompt("edit memory:", mem.content);
-    if (newText !== null && newText.trim()) {
-        mem.content = newText.trim();
-        saveMemories();
-        renderMemories();
+/* --- DEAD DROP: FULL SCREEN MOBILE VIEW --- */
+@media (max-width: 768px) {
+    body.phone-active #mobile-phone {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100dvh;
+        min-height: 100dvh;
+        z-index: 100;
+    }
+    body.phone-active #mobile-phone .mobile-view-body {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    body.phone-active #mobile-phone #phone-section {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        padding: 0;
+        margin: 0;
+        border: none;
+    }
+    /* 不要显示网页原来的 Dead Drop 标题 */
+    body.phone-active #mobile-phone #phone-section > h2 { display: none; }
+    /* 手机本身占满整个 viewport */
+    body.phone-active #mobile-phone .phone-device {
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    body.phone-active #mobile-phone .phone-screen {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
     }
 }
 
-function renderMemories() {
-    let containers = [
-        document.getElementById("memory-list"),
-        document.getElementById("memory-list-mobile")
-    ];
-    containers.forEach(list => {
-        if (!list) return;
-        list.innerHTML = "";
-        let groups = {};
-        memories.forEach(m => {
-            let month = m.date.slice(0, 7);
-            if (!groups[month]) groups[month] = [];
-            groups[month].push(m);
-        });
-        let sortedMonths = Object.keys(groups).sort().reverse();
-        sortedMonths.forEach(month => {
-            let groupDiv = document.createElement("div");
-            groupDiv.className = "memory-month-group";
-            let count = groups[month].length;
-            groupDiv.innerHTML = `<div class="memory-month-header" data-month="${month}" onclick="toggleMemoryMonth(this)">▼ ${month} <span style="float:right;color:#555;">${count}</span></div>`;
-            groups[month].forEach(mem => {
-                let entry = document.createElement("div");
-                entry.className = "memory-entry";
-                entry.innerHTML = `
-                    ${escapeHtml(mem.content).replace(/\n/g, '<br>')}
-                    <div class="memory-entry-date">${mem.date}</div>
-                    <div class="memory-entry-actions">
-                        <span onclick="editMemory(${mem.id})">✏️</span>
-                        <span onclick="deleteMemory(${mem.id})">×</span>
-                    </div>
-                `;
-                groupDiv.appendChild(entry);
-            });
-            list.appendChild(groupDiv);
-        });
-    });
+/* Desktop phone-entry override for purchases */
+#phone-purchases-app .phone-entry {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    transition: border-color 0.25s, background 0.25s;
+}
+#phone-purchases-app .phone-entry:hover {
+    background: rgba(124, 58, 237, 0.06);
+    border-color: rgba(124, 58, 237, 0.2);
+}
+#phone-purchases-app .phone-entry-header { padding: 12px 14px; }
+#phone-purchases-app .phone-entry-content {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    color: #777;
+    background: rgba(0, 0, 0, 0.3);
+}
+#phone-purchases-app .entry-delete { color: #555; }
+#phone-purchases-app .entry-delete:hover { color: #ff4444; }
+
+/* Generate button inside purchases */
+#phone-purchases-app .phone-gen-btn {
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px dashed rgba(124, 58, 237, 0.2);
+    color: #555;
+    border-radius: 14px;
+}
+#phone-purchases-app .phone-gen-btn:hover {
+    border-color: rgba(124, 58, 237, 0.45);
+    color: #c084fc;
+    background: rgba(124, 58, 237, 0.1);
+}
+/* 展开区的删除按钮 */
+.entry-del-btn {
+    margin-top: 8px;
+    background: none;
+    border: 1px solid #333;
+    color: #555;
+    padding: 5px 10px;
+    font-family: inherit;
+    font-size: 9px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.entry-del-btn:hover { border-color: #ff4444; color: #ff4444; }
+
+/* --- STREAMING CURSOR --- */
+.stream-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 13px;
+    background: #c084fc;
+    margin-left: 3px;
+    vertical-align: -2px;
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.8);
+    animation: cursor-blink 0.8s steps(1) infinite;
+}
+@keyframes cursor-blink {
+    0%, 60% { opacity: 1; }
+    61%, 100% { opacity: 0; }
+}
+/* --- GENERATING BUTTON STATE --- */
+.btn-generating {
+    color: #c084fc !important;
+    border-color: rgba(124, 58, 237, 0.4) !important;
+    animation: pulse-stop 1s infinite;
+}
+/* --- SETTINGS TABS --- */
+.settings-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+.settings-tab {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #777;
+    padding: 9px 4px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.settings-tab:hover { border-color: #555; color: #aaa; }
+.settings-tab.active {
+    border-color: #7c3aed;
+    color: #c084fc;
+    background: rgba(124, 58, 237, 0.12);
+}
+.settings-tab-content { display: none; }
+.settings-tab-content.active { display: block; }
+
+/* --- WORLDBOOK UI --- */
+#new-worldbook-btn {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px dashed #555;
+    color: #c084fc;
+    padding: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+}
+#new-worldbook-btn:hover { border-color: #7c3aed; }
+
+.wb-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid #333;
+    margin-bottom: 6px;
+}
+.wb-row:hover { border-color: #555; }
+.wb-name {
+    flex: 1;
+    font-size: 9px;
+    color: #ccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.wb-mode {
+    font-size: 7px;
+    color: #555;
+}
+.wb-toggle {
+    cursor: pointer;
+    font-size: 13px;
+    opacity: 0.25;
+    transition: opacity 0.2s, transform 0.2s;
+    user-select: none;
+}
+.wb-toggle.on {
+    opacity: 1;
+    transform: scale(1.15);
+}
+.wb-action {
+    cursor: pointer;
+    font-size: 10px;
+    color: #555;
+    transition: color 0.2s;
+}
+.wb-action:hover { color: #c084fc; }
+#worldbook-editor { border-top: 1px solid #333; padding-top: 10px; margin-top: 10px; }
+
+/* ═══════════════ FILE UPLOAD AREA ═══════════════ */
+#file-upload-area {
+    border: 1px dashed #555;
+    padding: 18px 10px;
+    text-align: center;
+    color: #555;
+    font-size: 9px;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: border-color 0.2s, color 0.2s;
+}
+#file-upload-area:hover { border-color: #7c3aed; color: #c084fc; }
+
+.wb-file-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 1px solid #333;
+    margin-top: 6px;
+    font-size: 8px;
+    color: #888;
+}
+.wb-file-row .ok { color: #7c3aed; margin-left: auto; }
+
+/* ═══════════════ NOTES APP — APPLE NOTES STYLE ═══════════════ */
+#notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-function toggleMemoryMonth(el) {
-    let group = el.closest('.memory-month-group');
-    if (!group) return;
-    let collapsed = group.classList.toggle('collapsed');
-    let count = group.querySelectorAll('.memory-entry').length;
-    el.innerHTML = (collapsed ? '▶ ' : '▼ ') + el.dataset.month + ` <span style="float:right;color:#555;">${count}</span>`;
+.note-cell {
+    background: #1c1c1e;
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.note-cell:hover { background: #26262a; }
+.note-cell:active { background: #2c2c31; }
+
+.note-cell-date {
+    font-size: 10px;
+    color: #8e8e93;
+    margin-bottom: 5px;
+    font-weight: 400;
 }
 
-// ===== WORLDBOOK SYSTEM =====
-let worldbooks = JSON.parse(localStorage.getItem("worldbooks") || "[]");
-let editingWbId = null;
-
-function saveWorldbooks() {
-    localStorage.setItem("worldbooks", JSON.stringify(worldbooks));
+.note-cell-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
 }
 
-function switchSettingsTab(tabName) {
-    document.querySelectorAll(".settings-tab").forEach(t => {
-        t.classList.toggle("active", t.dataset.tab === tabName);
-    });
-    document.querySelectorAll(".settings-tab-content").forEach(c => {
-        c.classList.toggle("active", c.id === "tab-" + tabName);
-    });
+.note-cell-preview {
+    font-size: 12px;
+    color: #8e8e93;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-document.querySelectorAll(".settings-tab").forEach(tab => {
-    tab.addEventListener("click", () => switchSettingsTab(tab.dataset.tab));
-});
+.note-cell-full {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #2c2c2e;
+    font-size: 13px;
+    color: #c7c7cc;
+    line-height: 1.7;
+    -webkit-user-select: text;
+    user-select: text;
+}
 
-function renderWorldbookList() {
-    let list = document.getElementById("worldbook-list");
-    if (!list) return;
-    list.innerHTML = "";
-    let chat = getActiveChat();
-    worldbooks.forEach(wb => {
-        let globalOn = !!wb.global;
-        let chatOn = !!(chat && chat.worldbookIds && chat.worldbookIds.includes(wb.id));
-        let modeText = (wb.keywords && wb.keywords.length)
-            ? "🔑 " + wb.keywords.slice(0, 3).join(", ")
-            : "♾ always";
-        let row = document.createElement("div");
-        row.className = "wb-row";
-        row.innerHTML = `
-            <span class="wb-name" title="${escapeHtml(wb.name)}">${escapeHtml(wb.name)}</span>
-            <span class="wb-mode">${escapeHtml(modeText)}</span>
-            <span class="wb-toggle ${globalOn ? "on" : ""}" title="Global" onclick="toggleWbGlobal(${wb.id})">🌐</span>
-            <span class="wb-toggle ${chatOn ? "on" : ""}" title="This chat only" onclick="toggleWbChat(${wb.id})">💬</span>
-            <span class="wb-action" onclick="openWbEditor(${wb.id})">✏️</span>
-            <span class="wb-action" onclick="deleteWb(${wb.id})">🗑️</span>
-        `;
-        list.appendChild(row);
-    });
-    if (worldbooks.length === 0) {
-        list.innerHTML = `<div class="sidebar-placeholder">no worldbooks yet. upload a file or create one above.</div>`;
+.note-cell-actions { margin-top: 10px; }
+.note-cell-actions button {
+    background: none;
+    border: 1px solid #2c2c2e;
+    color: #8e8e93;
+    padding: 6px 14px;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.note-cell-actions button:hover {
+    border-color: #0a47ff;
+    color: #0a47ff;
+}
+
+/* notes app body background slightly lifted from pure black */
+#phone-notes-app .app-body { background: #000; }
+
+/* mobile: full-width cells */
+@media (max-width: 768px) {
+    body.phone-active #mobile-phone .note-cell {
+        border-radius: 16px;
+        padding: 16px;
     }
-        renderUploadedFiles();
-
+    .note-cell-title { font-size: 16px; }
 }
-
-function toggleWbGlobal(id) {
-    let wb = worldbooks.find(w => w.id === id);
-    if (!wb) return;
-    wb.global = !wb.global;
-    saveWorldbooks();
-    renderWorldbookList();
-}
-
-function toggleWbChat(id) {
-    let chat = getActiveChat();
-    if (!chat) return;
-    if (!chat.worldbookIds) chat.worldbookIds = [];
-    let i = chat.worldbookIds.indexOf(id);
-    if (i >= 0) chat.worldbookIds.splice(i, 1);
-    else chat.worldbookIds.push(id);
-    saveAllChats();
-    renderWorldbookList();
-}
-
-function openWbEditor(id) {
-    editingWbId = id;
-    let editor = document.getElementById("worldbook-editor");
-    if (id === null) {
-        document.getElementById("wb-name").value = "";
-        document.getElementById("wb-keywords").value = "";
-        document.getElementById("wb-content").value = "";
-    } else {
-        let wb = worldbooks.find(w => w.id === id);
-        if (!wb) return;
-        document.getElementById("wb-name").value = wb.name;
-        document.getElementById("wb-keywords").value = (wb.keywords || []).join(", ");
-        document.getElementById("wb-content").value = wb.content;
-    }
-    editor.style.display = "block";
-    document.getElementById("wb-name").focus();
-}
-
-function saveWbEditor() {
-    let name = document.getElementById("wb-name").value.trim();
-    let content = document.getElementById("wb-content").value.trim();
-    if (!name || !content) {
-        alert("name and content cannot be empty");
-        return;
-    }
-    let keywords = document.getElementById("wb-keywords").value
-        .split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
-    if (editingWbId === null) {
-        worldbooks.push({ id: Date.now(), name, content, keywords, global: false });
-    } else {
-        let wb = worldbooks.find(w => w.id === editingWbId);
-        if (wb) { wb.name = name; wb.content = content; wb.keywords = keywords; }
-    }
-    saveWorldbooks();
-    closeWbEditor();
-    renderWorldbookList();
-}
-
-function closeWbEditor() {
-    editingWbId = null;
-    document.getElementById("worldbook-editor").style.display = "none";
-}
-
-function deleteWb(id) {
-    let wb = worldbooks.find(w => w.id === id);
-    if (!wb) return;
-    if (!confirm('delete worldbook "' + wb.name + '"?')) return;
-    worldbooks = worldbooks.filter(w => w.id !== id);
-    allChats.forEach(c => {
-        if (c.worldbookIds) c.worldbookIds = c.worldbookIds.filter(x => x !== id);
-    });
-    saveWorldbooks();
-    saveAllChats();
-    renderWorldbookList();
-}
-
-document.getElementById("new-worldbook-btn")?.addEventListener("click", () => openWbEditor(null));
-document.getElementById("wb-save")?.addEventListener("click", saveWbEditor);
-document.getElementById("wb-cancel")?.addEventListener("click", closeWbEditor);
-document.getElementById("settings-save")?.addEventListener("click", saveSettings);
-document.getElementById("settings-close")?.addEventListener("click", () => {
-    document.getElementById("settings-overlay").classList.remove("open");
-});
-
-// ===== keyword trigger + injection =====
-function buildWorldbookInjection(chatObj) {
-    if (worldbooks.length === 0) return "";
-    let recentText = (chatObj ? chatObj.history : chatHistory)
-        .slice(-8).map(m => (m.content || "").toLowerCase()).join("\n");
-    let parts = [];
-    worldbooks.forEach(wb => {
-        let on = !!wb.global ||
-            (chatObj && chatObj.worldbookIds && chatObj.worldbookIds.includes(wb.id));
-        if (!on) return;
-        if (wb.keywords && wb.keywords.length) {
-            let hit = wb.keywords.some(k => recentText.includes(k));
-            if (!hit) return;
-        }
-        parts.push("--- [Worldbook: " + wb.name + "] ---\n" + wb.content);
-    });
-    return parts.join("\n\n");
-}
-
-// ===== MOBILE SIDEBAR + VIEW SWITCHING =====
-function toggleSidebar() {
-    let sidebar = document.getElementById("sidebar");
-    let overlay = document.getElementById("sidebar-overlay");
-    if (sidebar.classList.contains("open")) {
-        sidebar.classList.remove("open");
-        overlay.style.display = "none";
-    } else {
-        sidebar.classList.add("open");
-        overlay.style.display = "block";
-    }
-}
-
-function isMobile() {
-    return window.innerWidth <= 768;
-}
-
-function returnSectionsToSidebar() {
-    let sidebar = document.getElementById("sidebar");
-    let mobileNav = document.getElementById("mobile-nav");
-    ["freq-section", "music-section", "phone-section", "memory-section"].forEach(id => {
-        let el = document.getElementById(id);
-        if (el && el.parentElement !== sidebar) {
-            if (mobileNav) {
-                sidebar.insertBefore(el, mobileNav);
-            } else {
-                sidebar.appendChild(el);
-            }
-        }
-        if (el) {
-            el.style.display = "";
-        }
-    });
-}
-
-function showMobileView(view) {
-    if (!isMobile()) return;
-    document.getElementById("sidebar").classList.remove("open");
-    document.getElementById("sidebar-overlay").style.display = "none";
-    returnSectionsToSidebar();
-    document.getElementById("chat-area").classList.add("hidden");
-    document.querySelectorAll(".mobile-view").forEach(v => {
-        v.classList.remove("active");
-        if (v.id === "mobile-memory") return;
-        let body = v.querySelector(".mobile-view-body");
-        if (body) body.innerHTML = "";
-    });
-    let title = document.getElementById("topbar-title");
-    if (title) title.style.display = (view === "chat") ? "" : "none";
-    document.body.classList.remove("phone-active");
-    if (view === "chat") {
-        document.getElementById("chat-area").classList.remove("hidden");
-        return;
-    }
-    if (view === "signal") {
-        let body = document.getElementById("signal-body");
-        body.appendChild(document.getElementById("freq-section"));
-        body.appendChild(document.getElementById("music-section"));
-        body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
-        document.getElementById("mobile-signal").classList.add("active");
-    }
-    if (view === "phone") {
-        document.body.classList.add("phone-active");
-        let body = document.getElementById("phone-body");
-        body.appendChild(document.getElementById("phone-section"));
-        body.querySelectorAll(".sidebar-section").forEach(s => {
-            s.style.display = "block";
-        });
-        document.getElementById("mobile-phone").classList.add("active");
-        updatePhoneTime();
-        resetPhoneToLockScreen();
-    }
-    if (view === "memory") {
-        let body = document.getElementById("memory-body");
-        body.appendChild(document.getElementById("memory-section"));
-        body.querySelectorAll(".sidebar-section").forEach(s => s.style.display = "block");
-        document.getElementById("mobile-memory").classList.add("active");
-        renderMemories();
-    }
-}
-
-function addMemoryMobile() {
-    let input = document.getElementById("memory-input-mobile") || document.getElementById("memory-input");
-    if (!input) return;
-    let text = input.value.trim();
-    if (!text) return;
-    let today = new Date();
-    let dateStr = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, "0") + "/" + String(today.getDate()).padStart(2, "0");
-    memories.push({ id: Date.now(), date: dateStr, content: text });
-    saveMemories();
-    input.value = "";
-    renderMemories();
-}
-
-function openMemoryPanel() {
-    if (isMobile()) {
-        showMobileView("memory");
-    } else {
-        let section = document.getElementById("memory-section");
-        section.scrollIntoView({ behavior: "smooth" });
-    }
-}
-
-// ===== INIT =====
-loadSettings();
-loadAllChats();
-initPhone();
-renderMemories();
-renderFrequencies();
-applyFont();
-initFontControls();
-
