@@ -34,17 +34,31 @@ function applyFont() {
         document.head.appendChild(tag);
     }
     tag.textContent = `
-        * { font-family: '${font}', 'DotGothic16', 'Press Start 2P', monospace !important; }
-        .phone-screen, .phone-screen * {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-        }
-        #chatbox, #userInput, .msg-user, .msg-john, .msg-think-body,
-        .freq-text, .freq-reply, .memory-entry, #freq-input,
-        .sidebar-placeholder, .msg-interrupted {
-            font-size: ${size}px !important;
-            line-height: 1.7;
-        }
-    `;
+    * { font-family: '${font}', 'DotGothic16', 'Press Start 2P', monospace !important; }
+
+    .phone-screen, .phone-screen * {
+        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    }
+
+    /* 手机里的自定义字体例外 —— 双类选择器，特异性压过上面的 .phone-screen * */
+    .phone-screen .lock-time,
+    .phone-screen .home-time {
+        font-family: 'newrocker', sans-serif !important;
+    }
+
+    .phone-screen .note-cell-preview,
+    .phone-screen .note-cell-full,
+    .phone-screen .phone-entry-content {
+        font-family: 'JetBrainsMono', monospace !important;
+    }
+
+    #chatbox, #userInput, .msg-user, .msg-john, .msg-think-body, .freq-text,
+    .freq-reply, .memory-entry, #freq-input, .sidebar-placeholder, .msg-interrupted {
+        font-size: ${size}px !important;
+        line-height: 1.7;
+    }
+`;
+
 }
 
 function initFontControls() {
