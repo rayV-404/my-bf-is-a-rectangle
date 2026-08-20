@@ -235,46 +235,107 @@
 <div id="settings-panel">
     <div class="settings-header">
         <h2>⚙️ Settings</h2>
-        <button class="close-x" id="settings-close">✕</button>
+        <button id="settings-close" class="close-x">✕</button>
     </div>
-    <label>Presets</label>
+<div class="font-settings-row">
+    <select id="fontSelect">
+        <option value="Press Start 2P">Press Start 2P</option>
+        <option value="Fusion Pixel">Fusion Pixel</option>
+        <option value="Roboto">Roboto</option>
+    </select>
+    <input type="range" id="fontSizeRange" min="12" max="22" step="1" value="14">
+    <span id="fontSizeLabel">14px</span>
+</div>
+
+    <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="api">📡 API</button>
+        <button class="settings-tab" data-tab="prompt">📝 Prompts</button>
+        <button class="settings-tab" data-tab="worldbook">📚 Worldbooks</button>
+    </div>
+
+    <!-- ===== API ===== -->
+    <div class="settings-tab-content active" id="tab-api">
+        <label>Presets</label>
         <div class="preset-row">
-            <select id="presetSelect">
-                <option value="">-- no preset --</option>
-            </select>
+            <select id="presetSelect"></select>
             <button class="preset-btn" onclick="savePreset()">💾 save</button>
             <button class="preset-btn" onclick="deletePreset()">🗑️</button>
         </div>
 
         <label>API URL</label>
-        <input id="apiUrl" type="text" placeholder="https://api.example.com/v1">
+        <input id="apiUrl" placeholder="https://...">
+
         <label>API Key</label>
-        <input id="apiKey" type="password" placeholder="sk-...">
+        <input id="apiKey" type="password">
+
         <label>Model</label>
         <div class="model-row">
-            <input id="modelName" type="text" placeholder="claude-opus-4-6-thinking">
+            <input id="modelName">
             <button class="fetch-btn" onclick="fetchModels()">📡 fetch</button>
         </div>
         <select id="modelSelect" style="display:none;"></select>
 
         <div class="settings-row">
-            <div><label>Max Tokens</label><input id="maxTokens" type="number" placeholder="4096"></div>
-            <div><label>Temperature</label><input id="temperature" type="text" placeholder="0.7"></div>
+            <div>
+                <label>Max Tokens</label>
+                <input id="maxTokens" type="number">
+            </div>
+            <div>
+                <label>Temperature</label>
+                <input id="temperature" type="number" step="0.1">
+            </div>
         </div>
-        <label>System Prompt</label>
-        <div id="file-upload-area" style="border: 1px dashed #555; padding: 15px; margin-bottom: 8px; text-align: center; cursor: pointer;">
-            <input type="file" id="sysFiles" multiple accept=".txt,.md,.json" style="display:none;">
-            <div style="color: #888; font-size: 8px;">📎 click or drag files here</div>
-            <div id="file-list" style="color: #c084fc; font-size: 7px; margin-top: 8px;"></div>
+
+        <div class="settings-row" style="margin-top: 15px;">
+            <button class="export-import-btn" onclick="exportData()">📦 export all</button>
+            <button class="export-import-btn" id="import-btn">📥 import</button>
         </div>
-        <textarea id="sysPrompt" placeholder="uploaded content shows here. you can still edit manually too..."></textarea>
-        <button id="settings-save">💾 Save</button>
-        <div class="settings-row" style="margin-top: 12px;">
-    <button class="export-import-btn" onclick="exportData()">📦 export all</button>
-    <button class="export-import-btn" id="import-btn">📥 import</button><input type="file" id="importFile" accept=".json" style="display:none;">
-</div>
     </div>
+
+    <!-- ===== Prompts ===== -->
+    <div class="settings-tab-content" id="tab-prompt">
+        <label>global system prompt — applies to all chats</label>
+        <textarea id="sysPrompt"></textarea>
+
+        <label>current chat prompt — only "<span id="chat-instruction-name"></span>"</label>
+        <textarea id="chatInstruction" placeholder="scene-specific settings for this chat..."></textarea>
+    </div>
+
+    <!-- ===== Worldbooks ===== -->
+    <div class="settings-tab-content" id="tab-worldbook">
+        <button id="new-worldbook-btn">+ new worldbook</button>
+
+        <div id="worldbook-list"></div>
+
+        <div id="worldbook-editor" style="display:none;">
+            <label>name</label>
+            <input id="wb-name" placeholder="book name...">
+            <label>trigger keywords (comma separated, empty = always inject)</label>
+            <input id="wb-keywords" placeholder="e.g. gig, drums, livehouse">
+            <label>content</label>
+            <textarea id="wb-content" style="height:180px;"></textarea>
+            <div class="msg-edit-btns">
+                <button id="wb-cancel">cancel</button>
+                <button id="wb-save">save</button>
+            </div>
+        </div>
+
+        <label>📎 import worldbook from file</label>
+        <div id="file-upload-area">📎 click or drag files here</div>
+        <div id="file-list"></div>
+
+        <div class="sidebar-placeholder" style="font-size:8px; margin-top:10px;">
+            🌐 = global &nbsp; 💬 = this chat only<br>
+            keyword books inject only when recent chat hits a keyword — saves tokens
+        </div>
+    </div>
+
+    <button id="settings-save">💾 Save</button>
+
+    <input type="file" id="importFile" accept=".json" style="display:none;">
+    <input type="file" id="sysFiles" multiple style="display:none;">
 </div>
+
 
     <script src="app.js"></script>
 </body>
