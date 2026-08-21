@@ -46,12 +46,14 @@ function applyFont() {
         font-family: 'newrocker', sans-serif !important;
     }
 
-    .phone-screen .note-cell-preview,
-    .phone-screen .note-cell-full,
-    .phone-screen .phone-entry-content {
-        font-family: 'JetBrainsMono', monospace !important;
+    .phone-screen .note-cell-preview, 
+    .phone-screen .note-cell-full, 
+    .phone-screen .phone-entry-content, 
+    .phone-screen .bowser-query, 
+    .phone-screen .bowser-entry-content { 
+    font-family: 'JetBrainsMono', monospace !important; 
     }
-
+    
     #chatbox, #userInput, .msg-user, .msg-john, .msg-think-body, .freq-text,
     .freq-reply, .memory-entry, #freq-input, .sidebar-placeholder, .msg-interrupted {
         font-size: ${size}px !important;
@@ -59,6 +61,102 @@ function applyFont() {
     }
 `;
 
+}
+// ===== PHONE BOWSER (search history) =====
+let phoneBowser = JSON.parse(localStorage.getItem("phoneBowser") || "[]");
+
+const bowserLoadingPhases = [
+  "opening bowser...",
+  "loading cookies...",
+  "scrolling history...",
+  "found something...",
+  "clearing evidence..."
+];
+
+async function generateBowser() {
+  let btn = document.getElementById("gen-bowser-btn");
+  if (!btn) return;
+  btn.disabled = true;
+  btn.classList.add("btn-generating-blue");
+  btn.textContent = bowserLoadingPhases[0];
+  let phase = 0;
+  let cycle = setInterval(() => {
+    phase = (phase + 1) % bowserLoadingPhases.length;
+    btn.textContent = bowserLoadingPhases[phase];
+  }, 800);
+
+  let recentChat = chatHistory.slice(-10).map(m =>
+    (m.role === "user" ? "Ray" : "John") + ": " + m.content
+  ).join("\n");
+  let existing = phoneBowser.slice(0, 5).map(b => b.query).join("\n");
+
+  let prompt = `You are looking at John S's search history on his phone. John is 24-25, plays drums, wears all black, drinks iced americanos and white Monsters, loves Deftones and horror movies, dates Ray (calls her Kitty). His girlfriend Ray just opened his browser and is snooping. Generate ONE search history entry. Return in this EXACT format:
+
+TITLE: [a short witty label, 3-6 words, lowercase — like john explaining this search to his snooping girlfriend, e.g. "for research purposes", "asking for a friend", "totally normal question"]
+QUERY: [the actual search string he typed, messy and real, 3-15 words, no quotes]
+
+The search can be practical, suspicious, embarrassing, wholesome, weird 3am stuff, or something about Ray. Recent conversations for context:
+${recentChat || "(no recent chat)"}
+
+Already existing searches (DO NOT repeat these or write anything too similar):
+${existing || "(none yet)"}
+
+Return ONLY the TITLE and QUERY lines. Nothing else.`;
+
+  let reply = await freqAPI(prompt);
+  clearInterval(cycle);
+
+  if (reply) {
+    let title = "";
+    let query = reply;
+    let titleMatch = reply.match(/^TITLE:\s*(.+)/im);
+    let queryMatch = reply.match(/QUERY:\s*(.+)/im);
+    if (titleMatch) title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
+    if (queryMatch) query = queryMatch[1].trim();
+    phoneBowser.unshift({ title: title, query: query, time: new Date().toLocaleString(), id: Date.now() });
+    localStorage.setItem("phoneBowser", JSON.stringify(phoneBowser));
+    renderBowser();
+  }
+
+  btn.textContent = "+ check history";
+  btn.classList.remove("btn-generating-blue");
+  btn.disabled = false;
+}
+
+function renderBowser() {
+  let list = document.getElementById("bowser-list");
+  if (!list) return;
+  list.innerHTML = "";
+  phoneBowser.forEach((b, i) => {
+    let div = document.createElement("div");
+    div.className = "bowser-entry";
+    div.innerHTML = `
+      <div class="bowser-entry-header" onclick="toggleBowserEntry(this)">
+        <span class="bowser-icon">🔍</span>
+        <span class="bowser-query">${escapeHtml(b.query)}</span>
+      </div>
+      <div class="bowser-entry-content" style="display:none;">
+        🔍 ${escapeHtml(b.query)}<span class="bowser-tab">${escapeHtml(b.title || "no context")}</span>
+        <div class="bowser-time">${escapeHtml(b.time || "")}</div>
+        <button class="entry-del-btn" onclick="event.stopPropagation(); deleteBowserEntry(${i})">🗑 delete</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  if (phoneBowser.length === 0) {
+    list.innerHTML = `<div style="text-align:center; color:#48484a; font-size:12px; padding:30px 10px; font-family:'Space Grotesk', sans-serif;">History is empty</div>`;
+  }
+}
+
+function deleteBowserEntry(idx) {
+  phoneBowser.splice(idx, 1);
+  localStorage.setItem("phoneBowser", JSON.stringify(phoneBowser));
+  renderBowser();
+}
+
+function toggleBowserEntry(el) {
+  let content = el.closest('.bowser-entry').querySelector('.bowser-entry-content');
+  if (content) content.style.display = content.style.display === "none" ? "block" : "none";
 }
 
 function initFontControls() {
@@ -198,7 +296,7 @@ function exportData() {
         worldbooks: JSON.parse(localStorage.getItem("worldbooks") || "[]"),
         appFont: localStorage.getItem("appFont") || "Press Start 2P",
         appFontSize: localStorage.getItem("appFontSize") || "14",
-
+        phoneBowser: JSON.parse(localStorage.getItem("phoneBowser") || "[]"),
     };
     let blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     let url = URL.createObjectURL(blob);
@@ -239,6 +337,7 @@ document.getElementById("importFile")?.addEventListener("change", function() {
             if (data.worldbooks) localStorage.setItem("worldbooks", JSON.stringify(data.worldbooks));
             if (data.appFont) localStorage.setItem("appFont", data.appFont);
             if (data.appFontSize) localStorage.setItem("appFontSize", data.appFontSize);
+            if (data.phoneBowser) localStorage.setItem("phoneBowser", JSON.stringify(data.phoneBowser));
 
             location.reload();
         } catch (err) {
@@ -994,14 +1093,18 @@ function resetPhoneToLockScreen() {
     const home = document.getElementById("phone-home");
     const notes = document.getElementById("phone-notes-app");
     const purchases = document.getElementById("phone-purchases-app");
+    const bowser = document.getElementById("phone-bowser-app");  // ← 新增
+
     if (lock) lock.style.display = "flex";
     if (home) home.style.display = "none";
     if (notes) notes.style.display = "none";
     if (purchases) purchases.style.display = "none";
+    if (bowser) bowser.style.display = "none";  // ← 新增
+
     loadNewQuestion();
     randomizeLockNotifications();
-
 }
+
 
 async function generateAppTitle(appType) {
     const subtitleEl = document.getElementById(`${appType}-subtitle`);
@@ -1010,7 +1113,8 @@ async function generateAppTitle(appType) {
     subtitleEl.style.opacity = '0.4';
     const prompts = {
         purchases: `You are John S. Generate a short, witty subtitle for your purchase history app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly suspicious, like you know she's looking. Examples of the VIBE (don't reuse these): "for completely innocent purposes", "nothing to see here babe", "all tax deductible i promise". Just the subtitle, nothing else.`,
-        notes: `You are John S. Generate a short, witty subtitle for your notes app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly embarrassed, like you didn't expect her to find these. Examples of the VIBE (don't reuse these): "things i'll deny writing", "not a diary. shut up.", "thoughts that should've stayed thoughts". Just the subtitle, nothing else.`
+        notes: `You are John S. Generate a short, witty subtitle for your notes app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly embarrassed, like you didn't expect her to find these. Examples of the VIBE (don't reuse these): "things i'll deny writing", "not a diary. shut up.", "thoughts that should've stayed thoughts". Just the subtitle, nothing else.`,
+        bowser: `You are John S. Generate a short, witty subtitle for your browser's search history — your girlfriend Ray just opened it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, defensive, like you know she's scrolling. Examples of the VIBE (don't reuse these): "those searches were research", "incognito exists for a reason", "don't scroll further". Just the subtitle, nothing else.`
     };
     let reply = await freqAPI(prompts[appType]);
     if (reply) {
@@ -1037,17 +1141,23 @@ function openPhoneApp(app) {
         renderPhonePurchases();
         generateAppTitle('purchases');
     }
+    if (app === "bowser") {
+    document.getElementById("phone-bowser-app").style.display = "flex";
+    renderBowser();
+    generateAppTitle('bowser');
+    }
 }
 
 function closePhoneApp() {
     document.getElementById("phone-notes-app").style.display = "none";
     document.getElementById("phone-purchases-app").style.display = "none";
+    const bowser = document.getElementById("phone-bowser-app");
+    if (bowser) bowser.style.display = "none";
     document.getElementById("phone-home").style.display = "flex";
     const closeButton = document.querySelector("#mobile-phone .close-x");
-    if (closeButton) {
-        closeButton.style.display = "";
-    }
+    if (closeButton) closeButton.style.display = "";
 }
+
 
 // --- PHONE NOTES (Apple Notes style) ---
 async function generateNote() {
