@@ -666,3 +666,11 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
     border-color: #2563eb !important;
     background: rgba(37, 99, 235, 0.1) !important;
 }
+/* Delivery — 绿色（物流配送感） */
+.lock-notification.notif-delivery .notif-app { color: rgba(36, 233, 255, 0.7); }
+/* Reminder — 琥珀色（提醒感） */
+.lock-notification.notif-reminder .notif-app { color: rgba(36, 75, 251, 0.7); }
+/* kitty 保持原来的蓝色 */
+
+/* 三条通知并排有点挤的话，收紧一点间距 */
+.lock-notification { margin: 8px 14px; }
