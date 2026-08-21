@@ -817,6 +817,92 @@ const kittyNotifications = [
     "do NOT let me open taobao rn",
     "if you don't reply in 5 min i'm eating your ramen"
 ];
+const deliveryNotifications = [
+    "Black Satin Blindfold — Out for delivery",
+    "Vic Firth 5A Drumsticks (x3) — Shipped",
+    "Monster Energy Ultra Zero (24pk) — Delivered",
+    "\"The Thing\" 4K Steelbook — Out for delivery",
+    "Leather Jacket Restoration Kit — Shipped",
+    "Oversized Black Hoodie (she will steal this) — Delivered",
+    "Titanium Ring Set, Matte Black — Out for delivery",
+    "Deftones 「White Pony」 Vinyl — Shipped",
+    "Ramen Bowl Set, Ceramic Black — Delivered",
+    "Cat Ear Headband (don't ask) — Out for delivery",
+    "Iced Americano Cold Brew Concentrate (x4) — Shipped",
+    "Sterling Silver Necklace, Custom Engraved — Out for delivery",
+    "Mechanical Keyboard, Silent Switches — Delivered",
+    "Black Rope, 10m, Soft Nylon — Shipped",
+    "Horror Movie Poster Collection — Out for delivery",
+    "Her Favorite Shampoo (she thinks she's running low) — Shipped",
+    "Massager Gun (for sore muscles) (actually for sore muscles) — Delivered",
+    "Matching Leather Bracelets (x2) — Out for delivery",
+    "Instant Film Camera, Black — Shipped",
+    "Pregnancy Test — Shipped. wait. CANCEL CANCEL CANCEL"
+];
+
+const reminderNotifications = [
+    "buy more monster (URGENT)",
+    "ray's birthday. do NOT forget again.",
+    "return drumsticks you borrowed from kai",
+    "cancel free trial before they charge you",
+    "pick up kitty's prescription",
+    "grocery run: eggs, ramen, her weird oat milk",
+    "change guitar strings for ray",
+    "dentist appointment (rescheduled 3x already)",
+    "backup phone before kitty finds search history",
+    "you owe kai $20 for the pizza",
+    "wash the hoodie she keeps stealing",
+    "anniversary idea: figure it out idiot",
+    "call mom back",
+    "gym membership auto-renews tuesday CANCEL??",
+    "her concert is friday. do not schedule anything.",
+    "restock first aid kit (she broke her ankle ONCE)",
+    "new drum heads. seriously. they sound dead.",
+    "apartment lease renewal — read the fine print this time",
+    "charge your phone before she texts and you miss it",
+    "learn that song she keeps humming"
+];
+
+// 随机时间戳，让通知看起来更真实
+function randomNotifTime() {
+    const times = ["now", "2m ago", "5m ago", "12m ago", "38m ago", "1h ago", "2h ago"];
+    return times[Math.floor(Math.random() * times.length)];
+}
+
+// 随机刷新锁屏全部通知
+function randomizeLockNotifications() {
+    // kitty
+    let notifText = document.getElementById('notif-text');
+    if (notifText) {
+        notifText.textContent = kittyNotifications[Math.floor(Math.random() * kittyNotifications.length)];
+        let when = document.getElementById('kitty-when');
+        if (when) when.textContent = "now";
+    }
+    // delivery（拆分 "商品 — 状态"）
+    let dTitle = document.getElementById('delivery-title');
+    let dText = document.getElementById('delivery-text');
+    if (dTitle && dText) {
+        let raw = deliveryNotifications[Math.floor(Math.random() * deliveryNotifications.length)];
+        let parts = raw.split(/\s+—\s+/);
+        if (parts.length >= 2) {
+            dTitle.textContent = parts[0];
+            dText.textContent = parts.slice(1).join(" — ");
+        } else {
+            dTitle.textContent = "Package update";
+            dText.textContent = raw;
+        }
+        let when = document.getElementById('delivery-when');
+        if (when) when.textContent = randomNotifTime();
+    }
+    // reminder
+    let rText = document.getElementById('reminder-text');
+    if (rText) {
+        rText.textContent = reminderNotifications[Math.floor(Math.random() * reminderNotifications.length)];
+        let when = document.getElementById('reminder-when');
+        if (when) when.textContent = randomNotifTime();
+    }
+}
+
 
 const phoneTrivia = [
     { q: "what's john's favorite color?", a: ["black"], wrong: "wow. you don't know that? we're breaking up.", roast: "...what else would it be. pink? you know me better than that. unfortunately." },
@@ -842,10 +928,7 @@ function initPhone() {
     setInterval(updatePhoneTime, 30000);
     renderPhoneNotes();
     renderPhonePurchases();
-    let notifText = document.getElementById('notif-text');
-    if (notifText) {
-        notifText.textContent = kittyNotifications[Math.floor(Math.random() * kittyNotifications.length)];
-    }
+    randomizeLockNotifications();
 }
 
 function updatePhoneTime() {
@@ -916,6 +999,8 @@ function resetPhoneToLockScreen() {
     if (notes) notes.style.display = "none";
     if (purchases) purchases.style.display = "none";
     loadNewQuestion();
+    randomizeLockNotifications();
+
 }
 
 async function generateAppTitle(appType) {
