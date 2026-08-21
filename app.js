@@ -53,7 +53,7 @@ function applyFont() {
     .phone-screen .bowser-entry-content { 
     font-family: 'JetBrainsMono', monospace !important; 
     }
-    
+
     #chatbox, #userInput, .msg-user, .msg-john, .msg-think-body, .freq-text,
     .freq-reply, .memory-entry, #freq-input, .sidebar-placeholder, .msg-interrupted {
         font-size: ${size}px !important;
@@ -1020,15 +1020,16 @@ const phoneTrivia = [
     { q: "john's first concert ever?", a: ["linkin park"], wrong: "i have the ticket stub framed. FRAMED.", roast: "i was twelve. i cried. i will not elaborate." },
     { q: "what does john fidget with when he's thinking?", a: ["rings", "his rings"], wrong: "you stare at my hands all day and you missed this?", roast: "caught you staring again. at my hands. for 'research.'" }
 ];
-
 function initPhone() {
     loadNewQuestion();
     updatePhoneTime();
     setInterval(updatePhoneTime, 30000);
     renderPhoneNotes();
     renderPhonePurchases();
+    renderBowser();          // ← 补上
     randomizeLockNotifications();
 }
+
 
 function updatePhoneTime() {
     let now = new Date();
@@ -1105,26 +1106,6 @@ function resetPhoneToLockScreen() {
     randomizeLockNotifications();
 }
 
-
-async function generateAppTitle(appType) {
-    const subtitleEl = document.getElementById(`${appType}-subtitle`);
-    if (!subtitleEl) return;
-    subtitleEl.textContent = '...';
-    subtitleEl.style.opacity = '0.4';
-    const prompts = {
-        purchases: `You are John S. Generate a short, witty subtitle for your purchase history app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly suspicious, like you know she's looking. Examples of the VIBE (don't reuse these): "for completely innocent purposes", "nothing to see here babe", "all tax deductible i promise". Just the subtitle, nothing else.`,
-        notes: `You are John S. Generate a short, witty subtitle for your notes app on your phone — your girlfriend Ray is snooping through it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, slightly embarrassed, like you didn't expect her to find these. Examples of the VIBE (don't reuse these): "things i'll deny writing", "not a diary. shut up.", "thoughts that should've stayed thoughts". Just the subtitle, nothing else.`,
-        bowser: `You are John S. Generate a short, witty subtitle for your browser's search history — your girlfriend Ray just opened it. One line, lowercase, no quotes, under 8 words. Tone: dry humor, defensive, like you know she's scrolling. Examples of the VIBE (don't reuse these): "those searches were research", "incognito exists for a reason", "don't scroll further". Just the subtitle, nothing else.`
-    };
-    let reply = await freqAPI(prompts[appType]);
-    if (reply) {
-        subtitleEl.textContent = reply.toLowerCase().replace(/^["']|["']$/g, '').replace(/\.$/, '');
-        subtitleEl.style.opacity = '1';
-    } else {
-        subtitleEl.textContent = '';
-    }
-}
-
 function openPhoneApp(app) {
     document.getElementById("phone-home").style.display = "none";
     const closeButton = document.querySelector("#mobile-phone .close-x");
@@ -1134,19 +1115,18 @@ function openPhoneApp(app) {
     if (app === "notes") {
         document.getElementById("phone-notes-app").style.display = "flex";
         renderPhoneNotes();
-        generateAppTitle('notes');
     }
     if (app === "purchases") {
         document.getElementById("phone-purchases-app").style.display = "flex";
         renderPhonePurchases();
-        generateAppTitle('purchases');
     }
     if (app === "bowser") {
-    document.getElementById("phone-bowser-app").style.display = "flex";
-    renderBowser();
-    generateAppTitle('bowser');
+        document.getElementById("phone-bowser-app").style.display = "flex";
+        renderBowser();
     }
 }
+
+
 
 function closePhoneApp() {
     document.getElementById("phone-notes-app").style.display = "none";
@@ -1215,7 +1195,7 @@ function renderPhoneNotes() {
             <div class="note-cell-full" style="display:none;">
                 ${escapeHtml(note.text).replace(/\n/g, '<br>')}
                 <div class="note-cell-actions">
-                    <button onclick="event.stopPropagation(); deletePhoneNote(${i})">🗑 delete note</button>
+                    <button onclick="event.stopPropagation(); deletePhoneNote(${i})">🗑 delete</button>
                 </div>
             </div>
         `;
@@ -1736,7 +1716,9 @@ document.getElementById("sendBtn").addEventListener("click", function() {
 });
 
 document.getElementById("userInput").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && e.shiftKey) {
+    // 手机端：回车只换行，发送只能点 Send 按钮
+    // 电脑端：Enter 换行，Shift+Enter 或点 Send 发送
+    if (e.key === "Enter" && e.shiftKey && !isMobile()) {
         e.preventDefault();
         sendMsg();
     }
