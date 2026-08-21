@@ -1,3 +1,4 @@
+/* ═══════════ FONTS ═══════════ */
 @font-face { font-family: 'Press Start 2P'; src: url('font/PressStart2P-Regular.ttf') format('truetype'); }
 @font-face { font-family: 'Fusion Pixel'; src: url('font/fusion-pixel.ttf') format('truetype'); }
 @font-face { font-family: 'Roboto'; src: url('font/Roboto.ttf') format('truetype'); }
@@ -5,13 +6,11 @@
 @font-face { font-family: 'newrocker'; src: url('font/newrocker.ttf') format('truetype'); }
 @font-face { font-family: 'JetBrainsMono'; src: url('font/JetBrainsMono.ttf') format('truetype'); }
 
-
 /* --- FONT SETTINGS ROW --- */
 .font-settings-row { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; padding: 10px; border: 1px solid #333; background: #1a1a1a; }
 .font-settings-row select { flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 6px; font-size: 10px; outline: none; }
 #fontSizeRange { width: 80px; accent-color: #7c3aed; cursor: pointer; }
 #fontSizeLabel { font-size: 9px; color: #c084fc; min-width: 32px; text-align: right; }
-
 
 /* --- CUSTOM SCROLLBAR (Ray's side) --- */
 ::-webkit-scrollbar { width: 6px; }
@@ -152,12 +151,7 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 
 /* --- INPUT AREA --- */
 #input-area { display: flex; gap: 8px; }
-#userInput {
-    flex: 1; background: #1a1a1a; border: 1px solid #333; color: #fff;
-    padding: 14px; outline: none; font-size: 12px;
-    font-family: 'Press Start 2P', monospace;
-    resize: none; overflow-y: auto; line-height: 1.6; max-height: 110px;
-}
+#userInput { flex: 1; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; outline: none; font-size: 12px; font-family: 'Press Start 2P', monospace; resize: none; overflow-y: auto; line-height: 1.6; max-height: 110px; }
 #userInput::placeholder { font-size: 10px; }
 #freq-input::placeholder { font-size: 10px; }
 #sendBtn { background: #7c3aed; color: #fff; border: none; padding: 14px 24px; cursor: pointer; font-size: 12px; font-family: 'Press Start 2P', monospace; transition: background 0.2s; }
@@ -216,141 +210,143 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 .export-import-btn { flex: 1; background: #1a1a1a; border: 1px solid #333; color: #c084fc; padding: 10px; font-family: 'Press Start 2P', monospace; font-size: 9px; cursor: pointer; transition: border-color 0.2s; }
 .export-import-btn:hover { border-color: #7c3aed; }
 
-/* ═══════════════════════════════════════ JOHN'S PHONE — MATTE BLACK / BLUE (his real theme) ═══════════════════════════════════════ */
-/* 主题变量：想换色只改这里两行即可 */
+/* ═════════════════════════ JOHN'S PHONE — MATTE BLACK / BLUE ═════════════════════════ */
 #phone-section { border: none; padding: 0; }
 #phone-section > h2 { padding: 12px; margin-bottom: 0; }
 
 /* --- DEVICE FRAME --- */
 .phone-device {
-    --j-blue: #3b82f6;      /* 主蓝 */
-    --j-rgb: 59, 130, 246;  /* 主蓝 RGB，供 rgba(var(--j-rgb), x) 使用 */
-    --j-light: #93c5fd;     /* 浅蓝强调色（对应 Ray 侧的 #c084fc） */
-    position: relative; width: 260px; margin: 0 auto 12px; background: #000;
-    border-radius: 28px; border: 1.5px solid #1a1a1a; overflow: hidden;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7), 0 0 40px rgba(var(--j-rgb), 0.06), inset 0 0 1px rgba(var(--j-rgb), 0.1);
-    transition: box-shadow 0.4s ease;
+  --j-blue: #3b82f6;
+  --j-rgb: 59, 130, 246;
+  --j-light: #93c5fd;
+  position: relative; width: 260px; margin: 0 auto 12px; background: #000; border-radius: 28px; border: 1.5px solid #1a1a1a; overflow: hidden;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.7), 0 0 40px rgba(var(--j-rgb), 0.06), inset 0 0 1px rgba(var(--j-rgb), 0.1);
+  transition: box-shadow 0.4s ease;
 }
-.phone-device:hover { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7), 0 0 50px rgba(var(--j-rgb), 0.1), inset 0 0 1px rgba(var(--j-rgb), 0.15); }
+.phone-device:hover { box-shadow: 0 4px 30px rgba(0,0,0,0.7), 0 0 50px rgba(var(--j-rgb), 0.1), inset 0 0 1px rgba(var(--j-rgb), 0.15); }
 .phone-notch { width: 72px; height: 16px; background: #000; border-radius: 0 0 12px 12px; margin: 0 auto; position: relative; z-index: 10; border: 1px solid #0a0a0a; border-top: none; }
 .phone-screen { min-height: 460px; display: flex; flex-direction: column; font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; }
 
-/* --- 手机内滚动条（蓝色，覆盖全局紫色） --- */
+/* --- scrollbar inside phone (blue) --- */
 .phone-device ::-webkit-scrollbar-thumb { background: var(--j-blue); border-radius: 4px; }
 .phone-device ::-webkit-scrollbar-thumb:hover { background: var(--j-light); }
 
 /* --- STATUS BAR --- */
-.phone-status { display: flex; justify-content: space-between; padding: 2px 16px 4px; font-size: 10px; color: #333; }
+.phone-status { display: flex; justify-content: space-between; padding: 2px 16px 4px; font-size: 12px; color: #333; }
 .phone-carrier { letter-spacing: 1px; color: rgba(var(--j-rgb), 0.35); }
 
-/* ═══════ LOCK SCREEN ═══════ */
+/* --- LOCK SCREEN --- */
 #phone-lock { background: radial-gradient(ellipse at 30% 20%, rgba(var(--j-rgb), 0.04) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(30, 64, 175, 0.03) 0%, transparent 50%), linear-gradient(180deg, #050505 0%, #080808 40%, #060606 100%); }
 .lock-clock { text-align: center; padding: 28px 0 16px; }
 .lock-time { font-family: 'newrocker', sans-serif; font-weight: normal; font-size: 52px; color: #e8e8e8; letter-spacing: 4px; text-shadow: 0 0 30px rgba(var(--j-rgb), 0.08); }
-.lock-date { font-size: 12px; color: #3a3a3a; margin-top: 4px; letter-spacing: 1px; font-weight: 300; }
+.lock-date { font-size: 14px; color: #3a3a3a; margin-top: 4px; letter-spacing: 1px; font-weight: 300; }
 
 /* --- LOCK NOTIFICATIONS --- */
-.lock-notification { margin: 10px 14px; background: rgba(12, 12, 14, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; padding: 12px 14px; border: 1px solid rgba(var(--j-rgb), 0.06); transition: border-color 0.3s, background 0.3s; }
+.lock-notification { margin: 8px 14px; background: rgba(12, 12, 14, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; padding: 12px 14px; border: 1px solid rgba(var(--j-rgb), 0.06); transition: border-color 0.3s, background 0.3s; }
 .lock-notification:hover { border-color: rgba(var(--j-rgb), 0.15); background: rgba(14, 14, 18, 0.9); }
 .notif-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.notif-app { font-size: 10px; color: rgba(var(--j-rgb), 0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.notif-when { font-size: 9px; color: #2a2a2a; }
-.notif-body strong { font-size: 12px; color: #ccc; display: block; margin-bottom: 2px; font-weight: 500; }
-.notif-body p { font-size: 12px; color: #555; margin: 0; line-height: 1.5; }
+.notif-app { font-size: 12px; color: rgba(var(--j-rgb), 0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.notif-when { font-size: 11px; color: #2a2a2a; }
+.notif-body strong { font-size: 14px; color: #ccc; display: block; margin-bottom: 2px; font-weight: 500; }
+.notif-body p { font-size: 14px; color: #555; margin: 0; line-height: 1.5; }
+/* delivery / reminder / kitty notification accents */
+.lock-notification.notif-delivery .notif-app { color: rgba(36, 233, 255, 0.7); }
+.lock-notification.notif-reminder .notif-app { color: rgba(36, 75, 251, 0.7); }
 
 /* --- LOCK QUESTION --- */
 .lock-question-area { margin-top: auto; padding: 16px; text-align: center; }
-.lock-label { font-size: 10px; color: #1a1a1a; font-style: italic; margin-bottom: 12px; font-family: 'Space Grotesk', sans-serif; }
-.lock-q { font-size: 12px; color: #666; margin-bottom: 12px; line-height: 1.7; font-weight: 300; }
+.lock-label { font-size: 12px; color: #1a1a1a; font-style: italic; margin-bottom: 12px; font-family: 'Space Grotesk', sans-serif; }
+.lock-q { font-size: 14px; color: #666; margin-bottom: 12px; line-height: 1.7; font-weight: 300; }
 .phone-answer-row { display: flex; gap: 6px; }
-.phone-answer-row input { flex: 1; background: rgba(var(--j-rgb), 0.03); border: 1px solid #151515; color: #ddd; padding: 10px 12px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; outline: none; border-radius: 10px; transition: border-color 0.25s, background 0.25s; }
+.phone-answer-row input { flex: 1; background: rgba(var(--j-rgb), 0.03); border: 1px solid #151515; color: #ddd; padding: 10px 12px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; outline: none; border-radius: 10px; transition: border-color 0.25s, background 0.25s; }
 .phone-answer-row input:focus { border-color: rgba(var(--j-rgb), 0.3); background: rgba(var(--j-rgb), 0.05); }
 .phone-answer-row input::placeholder { color: #1e1e1e; }
 .phone-answer-row button { background: rgba(var(--j-rgb), 0.06); border: 1px solid #151515; color: #888; padding: 10px 14px; font-size: 15px; cursor: pointer; border-radius: 10px; transition: all 0.25s; }
 .phone-answer-row button:hover { border-color: rgba(var(--j-rgb), 0.3); color: var(--j-light); background: rgba(var(--j-rgb), 0.1); }
-#phone-feedback { margin-top: 10px; font-size: 11px; min-height: 20px; line-height: 1.6; }
+#phone-feedback { margin-top: 10px; font-size: 13px; min-height: 20px; line-height: 1.6; }
 @keyframes phone-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
 .phone-shake { animation: phone-shake 0.4s ease; }
 
-/* ═══════ HOME SCREEN ═══════ */
+/* --- HOME SCREEN --- */
 #phone-home { background: radial-gradient(ellipse at 50% 90%, rgba(var(--j-rgb), 0.03) 0%, transparent 50%), #000; }
 .home-clock { text-align: center; padding: 20px 0 28px; }
 .home-time { font-family: 'newrocker', sans-serif; font-weight: normal; font-size: 36px; color: #e0e0e0; letter-spacing: 3px; text-shadow: 0 0 20px rgba(var(--j-rgb), 0.06); }
-
-/* --- APP GRID --- */
 .home-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 18px; flex: 1; }
 .app-icon { text-align: center; cursor: pointer; }
 .app-icon-img { width: 44px; height: 44px; background: rgba(var(--j-rgb), 0.04); border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 4px; border: 1px solid rgba(var(--j-rgb), 0.08); transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s; }
 .app-icon:hover .app-icon-img { transform: scale(1.1); background: rgba(var(--j-rgb), 0.1); border-color: rgba(var(--j-rgb), 0.25); box-shadow: 0 0 16px rgba(var(--j-rgb), 0.1); }
 .app-fake { opacity: 0.2; cursor: default; }
 .app-fake:hover .app-icon-img { transform: none; background: rgba(var(--j-rgb), 0.04); border-color: rgba(var(--j-rgb), 0.08); box-shadow: none; }
-.app-icon-label { font-size: 9px; color: #444; margin-top: 2px; transition: color 0.2s; }
+.app-icon-label { font-size: 11px; color: #444; margin-top: 2px; transition: color 0.2s; }
 .app-icon:hover .app-icon-label { color: #888; }
 .app-fake:hover .app-icon-label { color: #444; }
-
-/* --- DOCK --- */
 .home-dock { display: flex; justify-content: center; gap: 18px; padding: 14px 0; margin: 0 20px; border-top: 1px solid rgba(var(--j-rgb), 0.06); }
 .dock-icon { width: 38px; height: 38px; background: rgba(var(--j-rgb), 0.03); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; opacity: 0.2; }
-
-/* --- HOME BAR --- */
 .phone-home-bar { width: 100px; height: 4px; background: linear-gradient(90deg, transparent, rgba(var(--j-rgb), 0.2), transparent); border-radius: 2px; margin: 8px auto 10px; }
 
-/* ═══════ APP SCREENS (shared) ═══════ */
-.app-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid rgba(var(--j-rgb), 0.06); font-size: 13px; color: #ccc; background: rgba(0, 0, 0, 0.5); font-weight: 500; letter-spacing: 0.3px; }
+/* --- APP SCREENS (shared) --- */
+.app-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid rgba(var(--j-rgb), 0.06); font-size: 15px; color: #ccc; background: rgba(0, 0, 0, 0.5); font-weight: 500; letter-spacing: 0.3px; }
 .app-back { background: none; border: none; color: rgba(var(--j-rgb), 0.5); font-size: 16px; cursor: pointer; padding: 4px 8px; transition: color 0.2s; }
 .app-back:hover { color: var(--j-light); }
-
-/* --- APP SCREEN TITLES --- */
 .app-screen-title { padding: 16px 16px 8px; background: #000; }
-.app-title-text { font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 18px; font-weight: 700; color: #e8e8e8; letter-spacing: -0.3px; line-height: 1.3; margin: 0; }
-.app-screen-subtitle { font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #333; font-weight: 400; font-style: italic; margin-top: 5px; letter-spacing: 0.2px; min-height: 14px; transition: opacity 0.3s ease; }
+#phone-section .app-title-text { font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 20px; font-weight: 700; color: #60a5fa; letter-spacing: -0.3px; line-height: 1.3; margin: 0; text-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
 .app-body { flex: 1; overflow-y: auto; padding: 10px; max-height: 400px; background: #000; }
 
 /* --- GENERATE BUTTON --- */
-.phone-gen-btn { width: 100%; background: rgba(var(--j-rgb), 0.04); border: 1px dashed rgba(var(--j-rgb), 0.12); color: #3a3a3a; padding: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; cursor: pointer; margin-bottom: 10px; border-radius: 14px; transition: all 0.25s; letter-spacing: 0.3px; }
+.phone-gen-btn { width: 100%; background: rgba(var(--j-rgb), 0.04); border: 1px dashed rgba(var(--j-rgb), 0.12); color: #3a3a3a; padding: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; cursor: pointer; margin-bottom: 10px; border-radius: 14px; transition: all 0.25s; letter-spacing: 0.3px; }
 .phone-gen-btn:hover { border-color: rgba(var(--j-rgb), 0.35); color: var(--j-light); background: rgba(var(--j-rgb), 0.08); box-shadow: 0 0 16px rgba(var(--j-rgb), 0.06); }
+/* purchases variant */
+#phone-purchases-app .phone-gen-btn { background: rgba(var(--j-rgb), 0.06); border: 1px dashed rgba(var(--j-rgb), 0.2); color: #555; border-radius: 14px; }
+#phone-purchases-app .phone-gen-btn:hover { border-color: rgba(var(--j-rgb), 0.45); color: var(--j-light); background: rgba(var(--j-rgb), 0.1); }
 
-/* --- PHONE ENTRIES (Notes / Purchases shared) --- */
-.phone-entry { background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 14px; margin-bottom: 8px; overflow: hidden; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; }
-.phone-entry:hover { background: rgba(var(--j-rgb), 0.04); border-color: rgba(var(--j-rgb), 0.15); box-shadow: 0 0 12px rgba(var(--j-rgb), 0.05); }
+/* --- PHONE ENTRIES (Notes / Purchases shared, unified blue hover) --- */
+.phone-entry { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; margin-bottom: 8px; overflow: hidden; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; }
+.phone-entry:hover { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.05) !important; box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important; }
+.phone-entry:active { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.1) !important; }
 .phone-entry-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; }
-.entry-preview { font-size: 12px; color: #777; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.entry-delete { color: #555; font-size: 14px; cursor: pointer; margin-left: 8px; transition: color 0.2s; }
-.entry-delete:hover { color: #ff4444; }
-.phone-entry-content { padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, 0.03); font-family: 'JetBrainsMono', monospace; font-size: 11px; color: #777; line-height: 1.7; background: rgba(0, 0, 0, 0.3); }
-.entry-time { font-size: 10px; color: rgba(var(--j-rgb), 0.25); margin-top: 6px; }
+.entry-preview { font-size: 14px; color: #777; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-delete { color: #555; font-size: 16px; cursor: pointer; margin-left: 8px; transition: color 0.2s; }
+.entry-delete:hover { color: #44a5ff; }
+.phone-entry-content { padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, 0.04); font-family: 'JetBrainsMono', monospace; font-size: 13px; color: #777; line-height: 1.7; background: rgba(0, 0, 0, 0.3); }
+.entry-time { font-size: 12px; color: rgba(var(--j-rgb), 0.25); margin-top: 6px; }
+.entry-del-btn { margin-top: 8px; background: none; border: 1px solid #333; color: #555; padding: 5px 10px; font-family: inherit; font-size: 9px; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
+.entry-del-btn:hover { border-color: #44a5ff; color: #44a5ff; }
 
-/* --- Purchases-specific entry overrides --- */
-#phone-purchases-app .phone-gen-btn { background: rgba(var(--j-rgb), 0.04); border: 1px dashed rgba(var(--j-rgb), 0.15); }
-#phone-purchases-app .phone-gen-btn:hover { border-color: rgba(var(--j-rgb), 0.4); background: rgba(var(--j-rgb), 0.08); }
+/* ═══════ BOWSER APP ═══════ */
+.bowser-entry { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; margin-bottom: 8px; overflow: hidden; transition: border-color 0.25s, background 0.25s, box-shadow 0.25s; }
+.bowser-entry:hover { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.05) !important; box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important; }
+.bowser-entry:active { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.1) !important; }
+.bowser-entry-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+.bowser-icon { font-size: 15px; }
+.bowser-query { font-family: 'JetBrainsMono', monospace; font-size: 13px; color: #999; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bowser-entry-content { padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, 0.04); font-family: 'JetBrainsMono', monospace; font-size: 13px; color: #777; line-height: 1.7; background: rgba(0, 0, 0, 0.3); }
+.bowser-tab { display: inline-block; font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: #60a5fa; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 8px; padding: 2px 8px; margin-left: 8px; }
+.bowser-time { font-size: 12px; color: rgba(59, 130, 246, 0.35); margin-top: 6px; }
 
-/* ═══════ PURCHASE CARDS: MOBILE ═══════ */
-@media (max-width: 768px) {
-    body.phone-active #mobile-phone .phone-entry { width: 100%; margin-bottom: 10px; padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 16px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4); overflow: hidden; transition: border-color 0.3s, background 0.3s; }
-    body.phone-active #mobile-phone .phone-entry:active { border-color: rgba(var(--j-rgb), 0.3); background: rgba(var(--j-rgb), 0.05); }
-    body.phone-active #mobile-phone .phone-entry-header { padding: 0; }
-    body.phone-active #mobile-phone .purchase-icon { flex: 0 0 48px; width: 48px; height: 48px; font-size: 20px; }
-    body.phone-active #mobile-phone .purchase-name { font-size: 13px; color: #ccc; }
-    body.phone-active #mobile-phone .purchase-price { font-size: 14px; }
-    body.phone-active #mobile-phone #phone-purchases-app { height: 100%; background: #000; }
-    body.phone-active #mobile-phone #phone-purchases-app .app-body { flex: 1; max-height: none; overflow-y: auto; padding: 12px 16px 30px; background: #000; }
-    body.phone-active #mobile-phone .app-header { background: #000; border-bottom: 1px solid rgba(var(--j-rgb), 0.06); }
-    body.phone-active #mobile-phone .app-body { background: #000; }
-}
+/* ═══════ BLUE GENERATING STATE ═══════ */
+@keyframes pulse-blue { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.btn-generating-blue { color: #60a5fa !important; border-color: rgba(59, 130, 246, 0.45) !important; background: rgba(59, 130, 246, 0.08) !important; animation: pulse-blue 1.1s infinite; }
 
-/* --- HAMBURGER --- */
+/* ═══════ NOTES APP — UNIFIED BLACK + BLUE ═══════ */
+#notes-list { display: flex; flex-direction: column; gap: 6px; }
+.note-cell { background: #000; border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; -webkit-user-select: none; user-select: none; }
+.note-cell:hover { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.05) !important; box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important; }
+.note-cell:active { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.1) !important; }
+.note-cell-date { font-size: 12px; color: #8e8e93; margin-bottom: 5px; font-weight: 400; }
+.note-cell-title { font-size: 16px; font-weight: 600; color: #ffffff; margin-bottom: 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.note-cell-preview { font-family: 'JetBrainsMono', monospace; font-size: 12px; color: #8e8e93; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.note-cell-full { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2563eb !important; background: #000 !important; font-family: 'JetBrainsMono', monospace; font-size: 14px; color: #c7c7cc; line-height: 1.7; -webkit-user-select: text; user-select: text; }
+.note-cell-actions { margin-top: 10px; }
+.note-cell-actions button { background: none; border: 1px solid #2c2c2e; color: #8e8e93; padding: 6px 14px; font-size: 13px; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
+.note-cell-actions button:hover { border-color: #3b82f6; color: #3b82f6; }
+
+/* ═══════ HAMBURGER / MOBILE ═══════ */
 #hamburger-btn { display: none; background: none; border: 1px solid #555; color: #fff; font-size: 18px; cursor: pointer; padding: 5px 10px; border-radius: 4px; }
 #hamburger-btn:hover { border-color: #7c3aed; }
-
-/* --- SIDEBAR OVERLAY (mobile backdrop) --- */
 #sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 49; }
-
-/* --- MOBILE NAV (hidden on desktop) --- */
 #mobile-nav { display: none; flex-direction: column; gap: 4px; padding: 10px 0; border-top: 1px solid #333; margin-top: auto; }
 .mobile-nav-btn { background: #1a1a1a; border: 1px solid #333; color: #c084fc; padding: 10px 12px; font-family: 'Press Start 2P', monospace; font-size: 10px; cursor: pointer; text-align: left; transition: border-color 0.2s; }
 .mobile-nav-btn:hover { border-color: #7c3aed; }
-
-/* --- MOBILE VIEWS (hidden by default) --- */
 .mobile-view { display: none; flex-direction: column; height: calc(100vh - 50px); background: rgba(0,0,0,0.85); }
 .mobile-view-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #333; font-size: 12px; color: #fff; }
 .mobile-view-header button { background: none; border: 1px solid #555; color: #ccc; padding: 6px 10px; font-family: 'Press Start 2P', monospace; font-size: 10px; cursor: pointer; }
@@ -362,14 +358,15 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 .memory-input-row { display: flex; gap: 6px; }
 #memory-input { -webkit-appearance: none; flex: 1; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px 10px; font-family: 'Press Start 2P', monospace; font-size: 8px; outline: none; }
 #memory-input:focus { border-color: #7c3aed; }
-/* 月份折叠状态 */
 .memory-month-group.collapsed .memory-entry { display: none; }
 #memory-add-btn { background: #1a1a1a; border: 1px solid #555; color: #c084fc; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 11px; cursor: pointer; }
 #memory-add-btn:hover { border-color: #7c3aed; }
 #memory-list { max-height: 400px; overflow-y: auto; }
 .memory-month-group { margin-bottom: 12px; }
 .memory-month-header { font-size: 10px; color: #7c3aed; padding: 6px 0; border-bottom: 1px solid #333; margin-bottom: 6px; cursor: pointer; user-select: none; }
-.memory-entry { background: rgba(124, 58, 237, 0.05); border: 1px solid #333; padding: 10px; margin-bottom: 6px; font-size: 10px; line-height: 1.8; color: #ccc; }
+.memory-entry { background: rgba(37, 99, 235, 0.02) !important; border: 1px solid rgba(255, 255, 255, 0.04); padding: 10px; margin-bottom: 6px; font-size: 10px; line-height: 1.8; color: #ccc; }
+.memory-entry:hover { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.05) !important; }
+.memory-entry:active { border-color: #2563eb !important; background: rgba(37, 99, 235, 0.1) !important; }
 .memory-entry-date { font-size: 9px; color: #555; margin-top: 6px; }
 .memory-entry-actions { display: flex; gap: 8px; margin-top: 6px; }
 .memory-entry-actions span { font-size: 10px; color: #555; cursor: pointer; transition: color 0.2s; }
@@ -377,139 +374,111 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 
 /* ============================ MOBILE RESPONSIVE ============================ */
 @media (max-width: 768px) {
-    /* hide fake phone status bar on mobile */
-    .phone-status { display: none; }
-    /* hide topbar when phone view is open */
-    body.phone-active #topbar { display: none; }
-    /* phone view header: minimal, just ✕ */
-    body.phone-active #mobile-phone .mobile-view-header { position: absolute; top: 8px; left: 8px; z-index: 20; border: none; background: none; padding: 4px; }
-    body.phone-active #mobile-phone .mobile-view-header span { display: none; }
-    body.phone-active #mobile-phone { height: 100vh; }
+  .phone-status { display: none; }
+  body.phone-active #topbar { display: none; }
 
-    /* --- INPUT AREA FIXES --- */
-    #chat-area { padding-bottom: 10px; }
-    #input-area { padding-bottom: env(safe-area-inset-bottom, 16px); margin-bottom: 8px; gap: 6px; }
-    #userInput { padding: 10px; font-size: 12px !important; min-height: 40px; }
-    #userInput::placeholder { font-size: 10px; }
-    #sendBtn { padding: 10px 16px; font-size: 9px; }
+  /* phone view header: minimal, just X */
+  body.phone-active #mobile-phone .mobile-view-header { position: absolute; top: 8px; left: 8px; z-index: 20; border: none; background: none; padding: 4px; }
+  body.phone-active #mobile-phone .mobile-view-header span { display: none; }
+  body.phone-active #mobile-phone { height: 100vh; }
 
-    /* --- FREQ INPUT FIX --- */
-    #freq-input { font-size: 10px !important; }
-    #freq-input::placeholder { font-size: 10px; }
+  /* --- INPUT AREA FIXES --- */
+  #chat-area { padding-bottom: 10px; }
+  #input-area { padding-bottom: env(safe-area-inset-bottom, 16px); margin-bottom: 8px; gap: 6px; }
+  #userInput { padding: 10px; font-size: 12px !important; min-height: 40px; }
+  #userInput::placeholder { font-size: 10px; }
+  #sendBtn { padding: 10px 16px; font-size: 9px; }
 
-    #sidebar { display: flex; flex-direction: column; min-height: calc(100vh - 50px); }
+  /* --- FREQ INPUT FIX --- */
+  #freq-input { font-size: 10px !important; }
+  #freq-input::placeholder { font-size: 10px; }
 
-    /* --- MOBILE SIGNAL LAYOUT --- */
-    #mobile-signal { height: calc(100vh - 50px); display: none; flex-direction: column; }
-    #mobile-signal.active { display: flex; }
-    #mobile-signal .mobile-view-body { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: 5px; }
-    /* Frequency occupies the scrolling area */
-    #mobile-signal #freq-section { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    #mobile-signal #freq-timeline { height: auto; max-height: none; overflow: visible; }
-    /* Player stays at bottom of SIGNAL view */
-    #mobile-signal #music-section { flex: 0 0 auto; margin-top: 10px; padding: 10px 0; border-top: 1px solid #333; }
+  #sidebar { display: flex; flex-direction: column; min-height: calc(100vh - 50px); }
 
-    /* --- PHONE: FULL SCREEN ON MOBILE (single consolidated block) --- */
-    .phone-device { width: 100%; max-width: 100%; border-radius: 0; border: none; box-shadow: none; margin: 0; }
-    .phone-screen { min-height: calc(100vh - 140px); }
-    .phone-notch { display: none; }
-    .lock-time { font-size: 64px; }
-    .lock-notification { margin: 16px; }
-    .home-apps { gap: 20px; padding: 0 24px; }
-    .app-icon-img { width: 52px; height: 52px; font-size: 24px; }
-    .phone-home-bar { display: none; }
-    .app-body { flex: 1; min-height: 0; max-height: none; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    body.phone-active #mobile-phone .phone-screen { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-    body.phone-active #mobile-phone .phone-screen .app-body { flex: 1; min-height: 0; max-height: none; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 30px; }
+  /* --- MOBILE SIGNAL LAYOUT --- */
+  #mobile-signal { height: calc(100vh - 50px); display: none; flex-direction: column; }
+  #mobile-signal.active { display: flex; }
+  #mobile-signal .mobile-view-body { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: 5px; }
+  #mobile-signal #freq-section { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #mobile-signal #freq-timeline { height: auto; max-height: none; overflow: visible; }
+  #mobile-signal #music-section { flex: 0 0 auto; margin-top: 10px; padding: 10px 0; border-top: 1px solid #333; }
 
-    #new-chat-btn { padding: 14px; font-size: 12px; background: linear-gradient(135deg, #7c3aed, #a855f7); border: none; color: #fff; border-radius: 8px; margin-bottom: 12px; }
-    #chats-section { flex: 1; overflow-y: auto; border: none; }
-    #chats-section h2 { display: none; }
-    #chat-list-container { display: block !important; }
-    #chat-list { max-height: none; }
-    .chat-date-header { font-size: 10px; color: #555; padding: 8px 4px 4px; }
-    .chat-list-item { border-bottom: 1px solid #1a1a1a; border-radius: 6px; margin-bottom: 2px; }
-    .chat-list-item.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.15)); border-left: 3px solid #7c3aed; }
+  /* --- PHONE ON MOBILE --- */
+  .phone-notch { display: none; }
+  .lock-time { font-size: 64px; }
+  .lock-notification { margin: 16px; }
+  .home-apps { gap: 20px; padding: 0 24px; }
+  .app-icon-img { width: 52px; height: 52px; font-size: 24px; }
+  .phone-home-bar { display: none; }
 
-    /* sidebar becomes drawer */
-    #sidebar { position: fixed; top: 0; left: -300px; height: 100vh; z-index: 50; transition: left 0.25s ease; }
-    #sidebar.open { left: 0; }
-    #sidebar.open + #sidebar-overlay { display: block; }
-    /* show hamburger */
-    #hamburger-btn { display: block; }
-    /* show mobile nav in sidebar */
-    #mobile-nav { display: flex; }
-    /* hide desktop-only sidebar sections on mobile */
-    #freq-section, #phone-section, #music-section, #memory-section { display: none; }
-    /* topbar adjustments */
-    #topbar h1 { font-size: 11px; }
-    /* main layout: stack instead of side by side */
-    #main { flex-direction: column; }
-    /* chat area full width */
-    #chat-area { width: 100%; height: calc(100vh - 50px); }
-    /* mobile views when active */
-    .mobile-view.active { display: flex; }
-    /* hide chat when viewing other sections */
-    #chat-area.hidden { display: none; }
-    /* hide topbar right buttons on mobile */
-    #topbar-btns { display: none; }
-    /* smaller input fonts on mobile (zoom prevention handled by viewport meta) */
-    #userInput { font-size: 12px !important; }
-    #memory-input, #memory-input-mobile { font-size: 10px !important; }
-    #freq-input { font-size: 10px !important; }
-    .freq-reply-input, #phone-answer, .phone-answer-row input { font-size: 10px !important; }
-    /* hide section h2 inside mobile views — header already shows title */
-    .mobile-view-body .sidebar-section > h2 { display: none; }
-    /* tighter spacing in mobile views */
-    .mobile-view-body { padding: 5px; }
+  /* purchase cards on mobile */
+  body.phone-active #mobile-phone .phone-entry { width: 100%; margin-bottom: 10px; padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 16px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4); overflow: hidden; }
+  body.phone-active #mobile-phone .phone-entry:active { border-color: rgba(var(--j-rgb), 0.3); background: rgba(var(--j-rgb), 0.05); }
+  body.phone-active #mobile-phone .phone-entry-header { padding: 0; }
+  body.phone-active #mobile-phone .purchase-icon { flex: 0 0 48px; width: 48px; height: 48px; font-size: 20px; }
+  body.phone-active #mobile-phone .purchase-name { font-size: 13px; color: #ccc; }
+  body.phone-active #mobile-phone .purchase-price { font-size: 14px; }
+  body.phone-active #mobile-phone #phone-purchases-app { height: 100%; background: #000; }
+  body.phone-active #mobile-phone #phone-purchases-app .app-body { flex: 1; max-height: none; overflow-y: auto; padding: 12px 16px 30px; background: #000; }
+  body.phone-active #mobile-phone .app-header { background: #000; border-bottom: 1px solid rgba(var(--j-rgb), 0.06); }
+
+  /* notes cells full width */
+  body.phone-active #mobile-phone .note-cell { border-radius: 16px; padding: 16px; }
+  .note-cell-title { font-size: 16px; }
+
+  #new-chat-btn { padding: 14px; font-size: 12px; background: linear-gradient(135deg, #7c3aed, #a855f7); border: none; color: #fff; border-radius: 8px; margin-bottom: 12px; }
+  #chats-section { flex: 1; overflow-y: auto; border: none; }
+  #chats-section h2 { display: none; }
+  #chat-list-container { display: block !important; }
+  #chat-list { max-height: none; }
+  .chat-date-header { font-size: 10px; color: #555; padding: 8px 4px 4px; }
+  .chat-list-item { border-bottom: 1px solid #1a1a1a; border-radius: 6px; margin-bottom: 2px; }
+  .chat-list-item.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.15)); border-left: 3px solid #7c3aed; }
+
+  /* sidebar becomes drawer */
+  #sidebar { position: fixed; top: 0; left: -300px; height: 100vh; z-index: 50; transition: left 0.25s ease; }
+  #sidebar.open { left: 0; }
+  #sidebar.open + #sidebar-overlay { display: block; }
+  #hamburger-btn { display: block; }
+  #mobile-nav { display: flex; }
+  #freq-section, #phone-section, #music-section, #memory-section { display: none; }
+  #topbar h1 { font-size: 11px; }
+  #main { flex-direction: column; }
+  #chat-area { width: 100%; height: calc(100vh - 50px); }
+  .mobile-view.active { display: flex; }
+  #chat-area.hidden { display: none; }
+  #topbar-btns { display: none; }
+
+  #memory-input, #memory-input-mobile { font-size: 10px !important; }
+  .freq-reply-input, #phone-answer, .phone-answer-row input { font-size: 10px !important; }
+  .mobile-view-body .sidebar-section > h2 { display: none; }
+  .mobile-view-body { padding: 5px; }
 }
 
-/* --- CLOSE BUTTON (✕) --- */
+/* --- CLOSE BUTTON (X) --- */
 .close-x { background: none !important; border: none !important; color: #555; font-size: 18px; cursor: pointer; padding: 4px 8px; transition: color 0.2s; width: auto !important; margin: 0; font-family: inherit; }
 .close-x:hover { color: #fff; }
-
-/* --- SETTINGS HEADER --- */
 .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .settings-header h2 { margin: 0; }
-
-/* --- MOBILE VIEW HEADER TWEAK --- */
 .mobile-view-header .close-x { margin-right: 8px; border: none; }
-
-/* --- CHAT DATE HEADERS (desktop) --- */
 .chat-date-header { font-size: 9px; color: #555; padding: 10px 4px 4px; font-family: 'Press Start 2P', monospace; }
 
-/* --- DEAD DROP: FULL SCREEN MOBILE VIEW --- */
+/* --- DEAD DROP: FULL SCREEN MOBILE --- */
 @media (max-width: 768px) {
-    body.phone-active #mobile-phone { position: fixed; inset: 0; width: 100vw; height: 100dvh; min-height: 100dvh; z-index: 100; }
-    body.phone-active #mobile-phone .mobile-view-body { width: 100%; height: 100%; min-height: 0; padding: 0; overflow: hidden; }
-    body.phone-active #mobile-phone #phone-section { width: 100%; height: 100%; min-height: 0; padding: 0; margin: 0; border: none; }
-    /* 不要显示网页原来的 Dead Drop 标题 */
-    body.phone-active #mobile-phone #phone-section > h2 { display: none; }
-    /* 手机本身占满整个 viewport */
-    body.phone-active #mobile-phone .phone-device { width: 100%; max-width: none; height: 100%; min-height: 0; margin: 0; border: none; border-radius: 0; box-shadow: none; }
-    body.phone-active #mobile-phone .phone-screen { width: 100%; height: 100%; min-height: 0; }
+  body.phone-active #mobile-phone { position: fixed; inset: 0; width: 100vw; height: 100dvh; min-height: 100dvh; z-index: 100; }
+  body.phone-active #mobile-phone .mobile-view-body { width: 100%; height: 100%; min-height: 0; padding: 0; overflow: hidden; }
+  body.phone-active #mobile-phone #phone-section { width: 100%; height: 100%; min-height: 0; padding: 0; margin: 0; border: none; }
+  body.phone-active #mobile-phone #phone-section > h2 { display: none; }
+  body.phone-active #mobile-phone .phone-device { width: 100%; max-width: none; height: 100%; min-height: 0; margin: 0; border: none; border-radius: 0; box-shadow: none; }
+  body.phone-active #mobile-phone .phone-screen { width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column; }
+  body.phone-active #mobile-phone .phone-screen .app-body { flex: 1; min-height: 0; max-height: none; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 30px; background: #000; }
 }
-
-/* Desktop phone-entry override for purchases */
-#phone-purchases-app .phone-entry { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; margin-bottom: 8px; transition: border-color 0.25s, background 0.25s; }
-#phone-purchases-app .phone-entry:hover { background: rgba(var(--j-rgb), 0.06); border-color: rgba(var(--j-rgb), 0.2); }
-#phone-purchases-app .phone-entry-header { padding: 12px 14px; }
-#phone-purchases-app .phone-entry-content { border-top: 1px solid rgba(255, 255, 255, 0.04); color: #777; background: rgba(0, 0, 0, 0.3); }
-#phone-purchases-app .entry-delete { color: #555; }
-#phone-purchases-app .entry-delete:hover { color: #ff4444; }
-/* Generate button inside purchases */
-#phone-purchases-app .phone-gen-btn { background: rgba(var(--j-rgb), 0.06); border: 1px dashed rgba(var(--j-rgb), 0.2); color: #555; border-radius: 14px; }
-#phone-purchases-app .phone-gen-btn:hover { border-color: rgba(var(--j-rgb), 0.45); color: var(--j-light); background: rgba(var(--j-rgb), 0.1); }
-
-/* 展开区的删除按钮 */
-.entry-del-btn { margin-top: 8px; background: none; border: 1px solid #333; color: #555; padding: 5px 10px; font-family: inherit; font-size: 9px; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
-.entry-del-btn:hover { border-color: #ff4444; color: #ff4444; }
 
 /* --- STREAMING CURSOR --- */
 .stream-cursor { display: inline-block; width: 8px; height: 13px; background: #c084fc; margin-left: 3px; vertical-align: -2px; box-shadow: 0 0 8px rgba(124, 58, 237, 0.8); animation: cursor-blink 0.8s steps(1) infinite; }
 @keyframes cursor-blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0; } }
 
-/* --- GENERATING BUTTON STATE --- */
+/* --- GENERATING BUTTON STATE (purple) --- */
 .btn-generating { color: #c084fc !important; border-color: rgba(124, 58, 237, 0.4) !important; animation: pulse-stop 1s infinite; }
 
 /* --- SETTINGS TABS --- */
@@ -533,144 +502,8 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 .wb-action:hover { color: #c084fc; }
 #worldbook-editor { border-top: 1px solid #333; padding-top: 10px; margin-top: 10px; }
 
-/* ═══════════════ FILE UPLOAD AREA ═══════════════ */
+/* --- FILE UPLOAD AREA --- */
 #file-upload-area { border: 1px dashed #555; padding: 18px 10px; text-align: center; color: #555; font-size: 9px; cursor: pointer; margin-top: 5px; transition: border-color 0.2s, color 0.2s; }
 #file-upload-area:hover { border-color: #7c3aed; color: #c084fc; }
 .wb-file-row { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid #333; margin-top: 6px; font-size: 8px; color: #888; }
 .wb-file-row .ok { color: #7c3aed; margin-left: auto; }
-
-/* ═══════════════ NOTES APP — APPLE NOTES STYLE ═══════════════ */
-#notes-list { display: flex; flex-direction: column; gap: 6px; }
-.note-cell { background: #1c1c1e; border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none; }
-.note-cell:hover { background: #26262a; }
-.note-cell:active { background: #2c2c31; }
-.note-cell-date { font-size: 10px; color: #8e8e93; margin-bottom: 5px; font-weight: 400; }
-.note-cell-title { font-size: 15px; font-weight: 600; color: #ffffff; margin-bottom: 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-.note-cell-preview { font-family: 'JetBrainsMono', monospace; font-size: 11px; color: #8e8e93; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.note-cell-full { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2c2c2e; font-family: 'JetBrainsMono', monospace; font-size: 12px; color: #c7c7cc; line-height: 1.7; -webkit-user-select: text; user-select: text; }
-.note-cell-actions { margin-top: 10px; }
-.note-cell-actions button { background: none; border: 1px solid #2c2c2e; color: #8e8e93; padding: 6px 14px; font-size: 11px; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
-.note-cell-actions button:hover { border-color: #3b82f6; color: #3b82f6; }
-
-/* notes app body background slightly lifted from pure black */
-#phone-notes-app .app-body { background: #000; }
-
-/* mobile: full-width cells */
-@media (max-width: 768px) {
-    body.phone-active #mobile-phone .note-cell { border-radius: 16px; padding: 16px; }
-    .note-cell-title { font-size: 16px; }
-}
-/* ═════ JOHN'S PHONE: +2px FONT BOOST (放在文件最末尾) ═════ */
-.phone-status { font-size: 12px; }
-.lock-date { font-size: 14px; }
-.notif-app { font-size: 12px; }
-.notif-when { font-size: 11px; }
-.notif-body strong { font-size: 14px; }
-.notif-body p { font-size: 14px; }
-.lock-label { font-size: 12px; }
-.lock-q { font-size: 14px; }
-.phone-answer-row input { font-size: 14px; }
-#phone-feedback { font-size: 13px; }
-.app-icon-label { font-size: 11px; }
-.app-header { font-size: 15px; }
-.app-title-text { font-size: 20px; }
-.app-screen-subtitle { font-size: 14px; }
-.phone-gen-btn { font-size: 14px; }
-.entry-preview { font-size: 14px; }
-.entry-delete { font-size: 16px; }
-.phone-entry-content { font-size: 13px; }
-.entry-time { font-size: 12px; }
-.note-cell-date { font-size: 12px; }
-.note-cell-title { font-size: 16px; }
-.note-cell-preview { font-size: 12px; }
-.note-cell-full { font-size: 14px; }
-.note-cell-actions button { font-size: 13px; }
-/* ═════ NOTE & PURCHASES: HOVER EFFECTS ═════ */
-/* Notes app cells */
-.note-cell {
-    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-}
-.note-cell:hover {
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.05) !important;
-    box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important;
-}
-
-/* Purchase records */
-.phone-entry {
-    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-}
-.phone-entry:hover {
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.05) !important;
-    box-shadow: 0 0 16px rgba(37, 99, 235, 0.1) !important;
-}
-
-/* ═════ NOTE & PURCHASES: UNIFIED STYLE ═════ */
-/* Notes app cells - 统一为黑色背景 */
-.note-cell {
-    background: #000; /* 和 Purchases 一样 */
-    border: 1px solid rgba(255, 255, 255, 0.04); /* 默认深灰色边框 */
-    border-radius: 12px;
-    padding: 12px 14px;
-    cursor: pointer;
-    transition: border-color 0.3s, background 0.3s;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-/* Notes hover - 边框变蓝 */
-.note-cell:hover {
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.05) !important;
-}
-
-/* Notes active/click - 边框保持蓝色 */
-.note-cell:active {
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.1) !important;
-}
-
-/* Notes expanded state - 边框保持蓝色 */
-.note-cell-full {
-    border-top: 1px solid #2563eb !important; /* 展开时顶部边框变蓝 */
-    background: #000 !important; /* 展开内容保持黑色背景 */
-}
-
-
-/* Purchase hover and click effects */
-.phone-entry:hover {
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.05) !important;
-}
-
-.phone-entry:active {
-    animation: none !important;
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.1) !important;
-}
-/* Brain dump entries - remove gray background, add subtle blue */
-.memory-entry {
-    background: rgba(37, 99, 235, 0.02) !important;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    animation: blue-flash 3s infinite;
-}
-
-.memory-entry:hover {
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.05) !important;
-}
-
-.memory-entry:active {
-    animation: none !important;
-    border-color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.1) !important;
-}
-/* Delivery — 绿色（物流配送感） */
-.lock-notification.notif-delivery .notif-app { color: rgba(36, 233, 255, 0.7); }
-/* Reminder — 琥珀色（提醒感） */
-.lock-notification.notif-reminder .notif-app { color: rgba(36, 75, 251, 0.7); }
-/* kitty 保持原来的蓝色 */
-
-/* 三条通知并排有点挤的话，收紧一点间距 */
-.lock-notification { margin: 8px 14px; }
