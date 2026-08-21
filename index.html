@@ -116,6 +116,11 @@
                     <div class="app-icon-img">🧾</div>
                     <div class="app-icon-label">damage report</div>
                 </div>
+                <div class="app-icon" onclick="openPhoneApp('bowser')">
+                <div class="app-icon-img">🔍</div>
+                <div class="app-icon-label">black box</div>
+                </div>
+
                 <div class="app-icon app-fake">
                     <div class="app-icon-img">🎵</div>
                     <div class="app-icon-label">music</div>
@@ -139,6 +144,10 @@
                 <button class="app-back" onclick="closePhoneApp()">←</button>
                 <span>📝 brain dump</span>
             </div>
+            <div class="app-screen-title">
+            <h2 class="app-title-text">KITTY DO NOT OPEN THIS</h2>
+            <div class="app-screen-subtitle" id="notes-subtitle"></div>
+        </div>
             <div class="app-body">
                 <button class="phone-gen-btn" id="gen-note-btn" onclick="generateNote()">+ intercept thought</button>
                 <div id="notes-list"></div>
@@ -151,12 +160,32 @@
                 <button class="app-back" onclick="closePhoneApp()">←</button>
                 <span>🧾 damage report</span>
             </div>
+            <div class="app-screen-title">
+            <h2 class="app-title-text">KITTY STOP SCROLLING</h2>
+            <div class="app-screen-subtitle" id="purchases-subtitle"></div>
+        </div>
             
             <div class="app-body">
                 <button class="phone-gen-btn" id="gen-purchase-btn" onclick="generatePurchase()">+ dig deeper</button>
                 <div id="purchases-list"></div>
             </div>
-        </div><div class="phone-home-bar"></div>
+
+        </div>
+        <div class="phone-home-bar"></div>
+        <div id="phone-bowser-app" style="display:none; flex-direction:column;">
+        <div class="app-header">
+        <button class="app-back" onclick="closePhoneApp()">←</button>
+         🔍 black box
+  </div>
+  <div class="app-screen-title">
+    <h2 class="app-title-text">KITTY DO NOT READ THIS</h2>
+  </div>
+  <div class="app-body">
+    <button class="phone-gen-btn" id="gen-bowser-btn" onclick="generateBowser()">+ check history</button>
+    <div id="bowser-list"></div>
+  </div>
+</div>
+
     </div>
 </div>
 
