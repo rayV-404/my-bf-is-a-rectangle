@@ -273,6 +273,29 @@
     <div id="chat-area">
             <div id="chatbox"></div>
             <div id="input-area">
+                <!-- 在 #input-area 内部，#userInput 前面添加 -->
+<div class="chat-tools">
+    <button id="tools-btn" class="tool-btn">⚙️</button>
+    <div id="tools-menu" class="tools-menu">
+        <div class="tool-item" data-action="upload-image">
+    <span class="tool-icon">📷</span>
+    <span class="tool-text">Upload Image</span>
+</div>
+        <div class="tool-item" data-action="upload-file">
+            <span class="tool-icon">📎</span>
+            <span class="tool-text">Upload File</span>
+        </div>
+        <div class="tool-item" data-action="web-search">
+            <span class="tool-icon">🌐</span>
+            <span class="tool-text">Web Search</span>
+        </div>
+        <div class="tool-item" data-action="deep-thinking">
+            <span class="tool-icon">💡</span>
+            <span class="tool-text">Deep Thinking</span>
+        </div>
+    </div>
+</div>
+
                 <textarea id="userInput" placeholder="talk to your rectangle..." rows="1"></textarea>
                <button id="sendBtn">Send</button>
             </div>
