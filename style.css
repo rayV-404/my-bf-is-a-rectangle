@@ -582,3 +582,16 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 #chat-file-input, #chat-image-input {
     display: none;
 }
+.tool-item.tool-active { background:#333; }
+.tool-item.tool-active .tool-text { color:#c084fc; }
+
+   .purchase-card { display:flex; align-items:center; gap:12px; width:100%; }
+   .purchase-icon { flex:0 0 40px; width:40px; height:40px; font-size:18px;
+       background:rgba(var(--j-rgb),0.05); border-radius:11px;
+       display:flex; align-items:center; justify-content:center; }
+   .purchase-info { flex:1; min-width:0; }
+   .purchase-name { font-size:13px; color:#999; overflow:hidden;
+       text-overflow:ellipsis; white-space:nowrap;
+       font-family:'JetBrainsMono',monospace; }
+   .purchase-price { font-size:14px; color:#ccc; margin-top:2px; }
+   
