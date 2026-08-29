@@ -595,3 +595,31 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
        font-family:'JetBrainsMono',monospace; }
    .purchase-price { font-size:14px; color:#ccc; margin-top:2px; }
    
+#pending-image-box { padding: 0 14px; }
+.pending-image-chip {
+    position: relative;
+    display: inline-block;
+    margin: 8px 0 4px;
+}
+.pending-image-chip img {
+    max-height: 80px;
+    max-width: 160px;
+    border-radius: 10px;
+    border: 1px solid #3a3a3c;
+    display: block;
+}
+.pending-image-remove {
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 20px; height: 20px;
+    background: #1c1c1e;
+    border: 1px solid #555;
+    border-radius: 50%;
+    color: #ccc;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+}
+.pending-image-remove:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
