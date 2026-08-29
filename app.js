@@ -1292,6 +1292,8 @@ let chatHistory = [];
 let isGenerating = false;
 let awaitingReply = false;      // 发出了用户消息但还没收到回复
 let currentAbortController = null;
+let pendingImage = null;   // 待发送的图片（base64），随下一条消息一起发
+
 
 function saveChatHistory() {
     let chat = getActiveChat();
@@ -1685,22 +1687,32 @@ async function sendMsg() {
     if (isGenerating) return;
     let input = document.getElementById("userInput");
     let text = input.value.trim();
-    if (!text) return;
 
-    chatHistory.push({ role: "user", content: text, time: Date.now() });
+    // 没字也没图就不发
+    if (!text && !pendingImage) return;
+
+    let message = { role: "user", content: text || "[图片]", time: Date.now() };
+    if (pendingImage) message.image = pendingImage;
+
+    chatHistory.push(message);
 
     let activeChat = getActiveChat();
     if (activeChat && chatHistory.length === 1 && activeChat.name.startsWith("Chat ")) {
-        activeChat.name = text.slice(0, 30) + (text.length > 30 ? "..." : "");
+        activeChat.name = (text || "图片").slice(0, 30) + ((text || "").length > 30 ? "..." : "");
         renderChatList();
     }
 
-    awaitingReply = true;
+    // 清理输入区和暂存图
+    pendingImage = null;
+    renderPendingImage();
+
     saveChatHistory();
     renderChatbox();
+    awaitingReply = true;
 
     input.value = "";
     input.style.height = "auto";
+
     await callAPI();
 }
 
@@ -1747,11 +1759,12 @@ function editMessage(index) {
 async function regenerateMessage(index) {
     if (isGenerating) return;
     chatHistory.splice(index);
-    awaitingReply = true;
     saveChatHistory();
-    renderChatbox();
+    renderChatbox();        // 先渲染（不画小字）
+    awaitingReply = true;   // 再标记
     await callAPI();
 }
+
 
 // ===== EVENT LISTENERS =====
 document.getElementById("sendBtn").addEventListener("click", function () {
@@ -1883,31 +1896,40 @@ async function handleToolAction(action) {
 }
 
 // 处理图片上传
+// 处理图片上传：先暂存，等用户随文字一起发送
 function handleImageUpload() {
     chatImageInput.click();
     chatImageInput.onchange = async function (e) {
+        if (isGenerating) { alert("等这条回复完再发图吧"); return; }
         if (!e.target.files || !e.target.files[0]) return;
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = async function (ev) {
-            const imageUrl = await compressImage(ev.target.result);
-            const typedText = document.getElementById("userInput").value.trim();
-            const message = {
-                role: "user",
-                content: typedText || "[图片]",
-                image: imageUrl,
-                time: Date.now()
-            };
-            chatHistory.push(message);
-            saveChatHistory();
-            document.getElementById("userInput").value = "";
-            awaitingReply = true;
-            renderChatbox();
+            pendingImage = await compressImage(ev.target.result);
+            renderPendingImage();
             e.target.value = "";
-            await callAPI();
+            document.getElementById("userInput").focus();   // 选完图直接聚焦，方便打字
         };
         reader.readAsDataURL(file);
     };
+}
+
+// 渲染输入框上方的待发图片预览
+function renderPendingImage() {
+    let box = document.getElementById("pending-image-box");
+    if (!box) return;
+    if (!pendingImage) { box.innerHTML = ""; return; }
+    box.innerHTML = `
+        <div class="pending-image-chip">
+            <img src="${pendingImage}" alt="pending image">
+            <span class="pending-image-remove" onclick="clearPendingImage()">✕</span>
+        </div>
+    `;
+}
+
+function clearPendingImage() {
+    pendingImage = null;
+    renderPendingImage();
 }
 
 // 处理文件上传
@@ -1924,8 +1946,8 @@ function handleFileUpload() {
                 time: Date.now()
             });
             saveChatHistory();
-            awaitingReply = true;
             renderChatbox();
+            awaitingReply = true;
             e.target.value = "";
             callAPI();
         };
