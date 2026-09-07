@@ -588,24 +588,23 @@ function renderChatList() {
         list.appendChild(header);
 
         groups[dateKey].forEach(chat => {
-            let item = document.createElement("div");
-            item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
-            item.onclick = () => switchChat(chat.id);
-            item.innerHTML = `
-            <span class="chat-name">${escapeHtml(chat.name)}</span>
-            <span class="chat-item-actions">
-                <span class="chat-more-btn">⋯</span>
-            </span>
-            `;
+  let item = document.createElement("div");
+  item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
+  item.onclick = () => switchChat(chat.id);
+  item.innerHTML = `
+    <span class="chat-name">${escapeHtml(chat.name)}</span>
+    <span class="chat-item-actions">
+      <span class="chat-more-btn">⋯</span>
+    </span>
+  `;
+  list.appendChild(item);
 
-            list.appendChild(item);
-            list.querySelectorAll(".chat-more-btn").forEach(btn => {
-  btn.addEventListener("click", function (e) {
+  // 只绑这一个按钮，别再 querySelectorAll 全列表
+  item.querySelector(".chat-more-btn").addEventListener("click", function (e) {
     e.stopPropagation();
     let existed = this.parentElement.querySelector(".chat-item-menu");
     document.querySelectorAll(".chat-item-menu").forEach(m => m.remove());
-    if (existed) return; // 再点一次就关掉
-    let id = chat.id;    // 闭包里正好有当前 chat
+    if (existed) return;
     let m = document.createElement("div");
     m.className = "chat-item-menu";
     m.innerHTML = `
@@ -616,15 +615,13 @@ function renderChatList() {
     m.addEventListener("click", function (ev) {
       ev.stopPropagation();
       let act = ev.target.dataset.act;
-      if (act === "rename") renameChat(id, ev);
-      if (act === "export") exportSingleChat(id, ev);
-      if (act === "delete") deleteChat(id, ev);
+      if (act === "rename") renameChat(chat.id, ev);
+      if (act === "export") exportSingleChat(chat.id, ev);
+      if (act === "delete") deleteChat(chat.id, ev);
       m.remove();
     });
     this.parentElement.appendChild(m);
-  });
 });
-
         });
     });
 }
@@ -1359,102 +1356,100 @@ function saveChatHistory() {
 }
 
     function renderChatbox(preserveScroll) {
-    let chatbox = document.getElementById("chatbox");
-    let savedTop = chatbox.scrollTop;
-    chatbox.innerHTML = "";
+  let chatbox = document.getElementById("chatbox");
+  let savedTop = chatbox.scrollTop;
+  chatbox.innerHTML = "";
+  chatHistory.forEach((msg, i) => {   // ← 注意：不 filter，错误消息也要画出来
+    let cls = msg.role === "user" ? "msg-user" : "msg-john";
+    let wrapper = document.createElement("div");
+    wrapper.className = "msg-wrapper";
+    wrapper.setAttribute("data-index", i);
+    wrapper.setAttribute("data-role", msg.role);
 
-        chatHistory.filter(m => m.status !== "error").forEach((msg, i) => {
-        let cls = msg.role === "user" ? "msg-user" : "msg-john";
-        let wrapper = document.createElement("div");
-        wrapper.className = "msg-wrapper";
-        wrapper.setAttribute("data-index", i);
-        wrapper.setAttribute("data-role", msg.role);
-
-        if (msg.image) {
-        let contentDiv = document.createElement("div");
-        contentDiv.className = cls;
-        if (msg.content && msg.content !== "[图片]") {
-            let textDiv = document.createElement("div");
-            textDiv.innerHTML = renderMarkdown(msg.content);
-            contentDiv.appendChild(textDiv);
-        }
-        let img = document.createElement("img");
-        img.src = msg.image;
-        img.className = "msg-image";
-        img.alt = "Uploaded image";
-        contentDiv.appendChild(img);
-        if (msg.imageSize) {
-            let sizeDiv = document.createElement("div");
-            sizeDiv.className = "msg-image-size";
-            sizeDiv.textContent = "🗜️ " + msg.imageSize;
-            contentDiv.appendChild(sizeDiv);
-        }
-        wrapper.appendChild(contentDiv);
-        }
-
-        else {
-            if (msg.thinking) {
-                let thinkDiv = document.createElement("div");
-                thinkDiv.className = "msg-think";
-                thinkDiv.innerHTML = `<div class="msg-think-toggle">▸ static ⋯</div><div class="msg-think-body"></div>`;
-                thinkDiv.querySelector(".msg-think-body").textContent = msg.thinking;
-                wrapper.appendChild(thinkDiv);
-            }
-            let contentDiv = document.createElement("div");
-            contentDiv.className = cls;
-            contentDiv.innerHTML = renderMarkdown(msg.content);
-            wrapper.appendChild(contentDiv);
-        }
-
-        let actionsDiv = document.createElement("div");
-        actionsDiv.className = "msg-actions";
-        actionsDiv.innerHTML = `<span class="action-btn" data-action="edit">✏️ edit</span>`;
-        if (msg.role === "assistant") {
-            actionsDiv.innerHTML += `<span class="action-btn" data-action="regenerate">🔄 regenerate</span>`;
-        }
-        actionsDiv.innerHTML += `<span class="action-btn" data-action="delete">🗑️ delete</span>`;
-        wrapper.appendChild(actionsDiv);
-
-        if (msg.time) {
-            let timeDiv = document.createElement("div");
-            timeDiv.className = "msg-time";
-            timeDiv.textContent = formatMsgTime(msg.time);
-            wrapper.appendChild(timeDiv);
-        }
-
-        chatbox.appendChild(wrapper);
-    });
-        if (msg.status === "error") {
-        let errDiv = document.createElement("div");
-        errDiv.className = "msg-error";
-        errDiv.textContent = msg.content;
-        wrapper.appendChild(errDiv);
-        }
-
-        // failed/truncated 的消息，操作按钮不用 hover 直接显示
-        if (msg.status === "error" || msg.status === "truncated") {
-        actionsDiv.classList.add("force-show");
-}
-    // 对话停在一条没有被回复的用户消息上（新发后被中止、或刚编辑过）→ 显示 interrupted + regenerate
-    let lastMsg = chatHistory[chatHistory.length - 1];
-    if (awaitingReply && !isGenerating && lastMsg && lastMsg.role === "user") {
-        let lines = [
-            "*transmission interrupted*",
-            "*signal lost in transit*",
-            "*static crackle* ...connection severed"
-        ];
-        let div = document.createElement("div");
-        div.className = "msg-interrupted";
-        div.innerHTML = `${lines[Math.floor(Math.random() * lines.length)]} 📡 <span class="error-retry" onclick="resendLastMessage()">🔄 regenerate</span>`;
-        chatbox.appendChild(div);
-    }
-
-    if (preserveScroll) {
-        chatbox.scrollTop = savedTop;
+    if (msg.image) {
+      let contentDiv = document.createElement("div");
+      contentDiv.className = cls;
+      if (msg.content && msg.content !== "[图片]") {
+        let textDiv = document.createElement("div");
+        textDiv.innerHTML = renderMarkdown(msg.content);
+        contentDiv.appendChild(textDiv);
+      }
+      let img = document.createElement("img");
+      img.src = msg.image;
+      img.className = "msg-image";
+      img.alt = "Uploaded image";
+      contentDiv.appendChild(img);
+      if (msg.imageSize) {
+        let sizeDiv = document.createElement("div");
+        sizeDiv.className = "msg-image-size";
+        sizeDiv.textContent = "🗜️ " + msg.imageSize;
+        contentDiv.appendChild(sizeDiv);
+      }
+      wrapper.appendChild(contentDiv);
     } else {
-        chatbox.scrollTop = chatbox.scrollHeight;
+      if (msg.thinking) {
+        let thinkDiv = document.createElement("div");
+        thinkDiv.className = "msg-think";
+        thinkDiv.innerHTML = `<div class="msg-think-toggle">▸ static ⋯</div><div class="msg-think-body"></div>`;
+        thinkDiv.querySelector(".msg-think-body").textContent = msg.thinking;
+        wrapper.appendChild(thinkDiv);
+      }
+      let contentDiv = document.createElement("div");
+      contentDiv.className = cls;
+      if (msg.status === "error") {
+        contentDiv.classList.add("msg-error");
+        contentDiv.textContent = msg.content;   // 错误走纯文本，不走 markdown
+      } else {
+        contentDiv.innerHTML = renderMarkdown(msg.content);
+      }
+      wrapper.appendChild(contentDiv);
     }
+
+    if (msg.status === "truncated") {
+      let cut = document.createElement("div");
+      cut.className = "msg-truncated";
+      cut.textContent = "⏸ signal cut off — regenerate to redo";
+      wrapper.appendChild(cut);
+    }
+
+    let actionsDiv = document.createElement("div");
+    actionsDiv.className = "msg-actions";
+    actionsDiv.innerHTML = `<span class="action-btn" data-action="edit">✏️ edit</span>`;
+    if (msg.role === "assistant") {
+      actionsDiv.innerHTML += `<span class="action-btn" data-action="regenerate">🔄 regenerate</span>`;
+    }
+    actionsDiv.innerHTML += `<span class="action-btn" data-action="delete">🗑️ delete</span>`;
+    if (msg.status === "error" || msg.status === "truncated") {
+      actionsDiv.classList.add("force-show");   // 这两行在循环里才拿得到 actionsDiv
+    }
+    wrapper.appendChild(actionsDiv);
+
+    if (msg.time) {
+      let timeDiv = document.createElement("div");
+      timeDiv.className = "msg-time";
+      timeDiv.textContent = formatMsgTime(msg.time);
+      wrapper.appendChild(timeDiv);
+    }
+    chatbox.appendChild(wrapper);
+  });
+
+  // 对话停在一条没有被回复的用户消息上 → interrupted + regenerate
+  let lastMsg = chatHistory[chatHistory.length - 1];
+  if (awaitingReply && !isGenerating && lastMsg && lastMsg.role === "user") {
+    let lines = ["*transmission interrupted*", "*signal lost in transit*", "*static crackle* ...connection severed"];
+    let div = document.createElement("div");
+    div.className = "msg-interrupted";
+    div.innerHTML = `${lines[Math.floor(Math.random() * lines.length)]} 📡 <span class="error-retry" onclick="resendLastMessage()">🔄 regenerate</span>`;
+    chatbox.appendChild(div);
+  }
+
+  if (preserveScroll) {
+    chatbox.scrollTop = savedTop;
+  } else {
+    chatbox.scrollTop = chatbox.scrollHeight;
+  }
 }
+
 
 function setGenerating(state) {
     isGenerating = state;
@@ -1556,19 +1551,17 @@ async function callAPI() {
     if (fullSystem) messages.push({ role: "system", content: fullSystem });
 
     // 历史记录：带图的最近 4 条转成 image_url 多段 content 发给 API（更早的在请求里丢图，但保留在界面上预览）
-    let cleanHistory = chatHistory.map((m, i) => {
-        if (m.image && i >= chatHistory.length - 4) {
-            return {
-                role: m.role,
-                content: [
-                    { type: "text", text: m.content || "" },
-                    { type: "image_url", image_url: { url: m.image } }
-                ]
-            };
-        }
-        return { role: m.role, content: m.content };
-    });
-    messages = messages.concat(cleanHistory);
+    let apiHistory = chatHistory.filter(m => m.status !== "error");
+let cleanHistory = apiHistory.map((m, i) => {
+  if (m.image && i >= apiHistory.length - 4) {
+    return { role: m.role, content: [
+      { type: "text", text: m.content || "" },
+      { type: "image_url", image_url: { url: m.image } }
+    ] };
+  }
+  return { role: m.role, content: m.content };
+});
+messages = messages.concat(cleanHistory);
 
     let streamWrapper = null, streamThinkBody = null, streamContent = null;
     let fullContent = "";
