@@ -138,9 +138,10 @@ function renderBowser() {
 }
 
 function deleteBowserEntry(idx) {
-    phoneBowser.splice(idx, 1);
-    localStorage.setItem("phoneBowser", JSON.stringify(phoneBowser));
-    renderBowser();
+  if (!confirm("delete this search history?")) return;
+  phoneBowser.splice(idx, 1);
+  localStorage.setItem("phoneBowser", JSON.stringify(phoneBowser));
+  renderBowser();
 }
 
 function toggleBowserEntry(el) {
@@ -286,6 +287,20 @@ function exportData() {
     a.click();
     URL.revokeObjectURL(url);
 }
+function exportSingleChat(id, e) {
+  if (e) e.stopPropagation();
+  let chat = allChats.find(c => c.id === id);
+  if (!chat) return;
+  let data = { name: chat.name, created: chat.created, instruction: chat.instruction || "", history: chat.history };
+  let blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = chat.name.replace(/[\\/:*?"<>|]/g, "_").slice(0, 40) + "-" + new Date().toISOString().slice(0, 10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
 document.getElementById("import-btn")?.addEventListener("click", () => {
     document.getElementById("importFile").click();
@@ -427,19 +442,28 @@ function escapeHtml(text) {
 }
 
 // 压缩图片：限制最大边长 + 转 jpeg，防止 base64 撑爆 localStorage 和请求体
-function compressImage(dataUrl, maxSize = 1024, quality = 0.8) {
-    return new Promise(resolve => {
-        let img = new Image();
-        img.onload = () => {
-            let scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-            let w = Math.round(img.width * scale), h = Math.round(img.height * scale);
-            let c = document.createElement("canvas");
-            c.width = w; c.height = h;
-            c.getContext("2d").drawImage(img, 0, 0, w, h);
-            resolve(c.toDataURL("image/jpeg", quality));
-        };
-        img.src = dataUrl;
-    });
+const QUALITY_PRESETS = {
+  high:   { max: 1280, q: 0.8  },
+  medium: { max: 900,  q: 0.65 },
+  low:    { max: 560,  q: 0.5  }
+};
+let imageQuality = localStorage.getItem("imageQuality");
+if (!QUALITY_PRESETS[imageQuality]) imageQuality = "medium"; // 默认就是狠的那档
+
+function compressImage(dataUrl) {
+  let preset = QUALITY_PRESETS[imageQuality];
+  return new Promise(resolve => {
+    let img = new Image();
+    img.onload = () => {
+      let scale = Math.min(1, preset.max / Math.max(img.width, img.height));
+      let w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+      let c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL("image/jpeg", preset.q));
+    };
+    img.src = dataUrl;
+  });
 }
 
 // --- MULTI CHAT MANAGEMENT ---
@@ -568,13 +592,39 @@ function renderChatList() {
             item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
             item.onclick = () => switchChat(chat.id);
             item.innerHTML = `
-                <span class="chat-name">${escapeHtml(chat.name)}</span>
-                <span class="chat-item-actions">
-                    <span onclick="renameChat('${chat.id}', event)">✏️</span>
-                    <span onclick="deleteChat('${chat.id}', event)">🗑️</span>
-                </span>
+            <span class="chat-name">${escapeHtml(chat.name)}</span>
+            <span class="chat-item-actions">
+                <span class="chat-more-btn">⋯</span>
+            </span>
             `;
+
             list.appendChild(item);
+            list.querySelectorAll(".chat-more-btn").forEach(btn => {
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    let existed = this.parentElement.querySelector(".chat-item-menu");
+    document.querySelectorAll(".chat-item-menu").forEach(m => m.remove());
+    if (existed) return; // 再点一次就关掉
+    let id = chat.id;    // 闭包里正好有当前 chat
+    let m = document.createElement("div");
+    m.className = "chat-item-menu";
+    m.innerHTML = `
+      <div data-act="rename">✏️ rename</div>
+      <div data-act="export">📤 export</div>
+      <div data-act="delete">🗑️ delete</div>
+    `;
+    m.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      let act = ev.target.dataset.act;
+      if (act === "rename") renameChat(id, ev);
+      if (act === "export") exportSingleChat(id, ev);
+      if (act === "delete") deleteChat(id, ev);
+      m.remove();
+    });
+    this.parentElement.appendChild(m);
+  });
+});
+
         });
     });
 }
@@ -668,6 +718,7 @@ function renderFrequencies() {
     document.querySelectorAll(".freq-delete").forEach(btn => {
         btn.addEventListener("click", function () {
             let idx = parseInt(this.dataset.index);
+            if (!confirm("delete this frequency?")) return; 
             frequencies.splice(idx, 1);
             saveFrequencies();
             renderFrequencies();
@@ -1183,10 +1234,12 @@ function renderPhoneNotes() {
     }
 }
 
+
 function deletePhoneNote(idx) {
-    phoneNotes.splice(idx, 1);
-    localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
-    renderPhoneNotes();
+  if (!confirm("delete this note?")) return;
+  phoneNotes.splice(idx, 1);
+  localStorage.setItem("phoneNotes", JSON.stringify(phoneNotes));
+  renderPhoneNotes();
 }
 
 // --- PHONE PURCHASES ---
@@ -1274,10 +1327,12 @@ function renderPhonePurchases() {
     });
 }
 
+
 function deletePhonePurchase(idx) {
-    phonePurchases.splice(idx, 1);
-    localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
-    renderPhonePurchases();
+  if (!confirm("delete this purchase?")) return;
+  phonePurchases.splice(idx, 1);
+  localStorage.setItem("phonePurchases", JSON.stringify(phonePurchases));
+  renderPhonePurchases();
 }
 
 function togglePhoneEntry(el) {
@@ -1303,12 +1358,12 @@ function saveChatHistory() {
     }
 }
 
-function renderChatbox(preserveScroll) {
+    function renderChatbox(preserveScroll) {
     let chatbox = document.getElementById("chatbox");
     let savedTop = chatbox.scrollTop;
     chatbox.innerHTML = "";
 
-    chatHistory.forEach((msg, i) => {
+        chatHistory.filter(m => m.status !== "error").forEach((msg, i) => {
         let cls = msg.role === "user" ? "msg-user" : "msg-john";
         let wrapper = document.createElement("div");
         wrapper.className = "msg-wrapper";
@@ -1316,11 +1371,28 @@ function renderChatbox(preserveScroll) {
         wrapper.setAttribute("data-role", msg.role);
 
         if (msg.image) {
-            let contentDiv = document.createElement("div");
-            contentDiv.className = cls;
-            contentDiv.innerHTML = `<img src="${msg.image}" class="msg-image" alt="Uploaded image">`;
-            wrapper.appendChild(contentDiv);
-        } else {
+        let contentDiv = document.createElement("div");
+        contentDiv.className = cls;
+        if (msg.content && msg.content !== "[图片]") {
+            let textDiv = document.createElement("div");
+            textDiv.innerHTML = renderMarkdown(msg.content);
+            contentDiv.appendChild(textDiv);
+        }
+        let img = document.createElement("img");
+        img.src = msg.image;
+        img.className = "msg-image";
+        img.alt = "Uploaded image";
+        contentDiv.appendChild(img);
+        if (msg.imageSize) {
+            let sizeDiv = document.createElement("div");
+            sizeDiv.className = "msg-image-size";
+            sizeDiv.textContent = "🗜️ " + msg.imageSize;
+            contentDiv.appendChild(sizeDiv);
+        }
+        wrapper.appendChild(contentDiv);
+        }
+
+        else {
             if (msg.thinking) {
                 let thinkDiv = document.createElement("div");
                 thinkDiv.className = "msg-think";
@@ -1352,7 +1424,17 @@ function renderChatbox(preserveScroll) {
 
         chatbox.appendChild(wrapper);
     });
+        if (msg.status === "error") {
+        let errDiv = document.createElement("div");
+        errDiv.className = "msg-error";
+        errDiv.textContent = msg.content;
+        wrapper.appendChild(errDiv);
+        }
 
+        // failed/truncated 的消息，操作按钮不用 hover 直接显示
+        if (msg.status === "error" || msg.status === "truncated") {
+        actionsDiv.classList.add("force-show");
+}
     // 对话停在一条没有被回复的用户消息上（新发后被中止、或刚编辑过）→ 显示 interrupted + regenerate
     let lastMsg = chatHistory[chatHistory.length - 1];
     if (awaitingReply && !isGenerating && lastMsg && lastMsg.role === "user") {
@@ -1636,24 +1718,37 @@ async function callAPI() {
             }
         }
     } catch (err) {
-        document.getElementById("typing")?.remove();
-        streamWrapper?.remove();
+    document.getElementById("typing")?.remove();
+    setGenerating(false);
+    currentAbortController = null;
+    let targetChat = allChats.find(c => c.id === targetChatId);
+    if (!targetChat) return;
 
-        // 先把生成状态复位，否则下面的 renderChatbox 会因为 isGenerating 还为 true 而漏画提示行
-        setGenerating(false);
-        currentAbortController = null;
-
-        if (err.name === "AbortError") {
-            // 注意：不清 awaitingReply —— 保持 true，
-            // renderChatbox 会自动画出带 regenerate 的 interrupted 行，
-            // 用户编辑这条消息后小字依然在，点 regenerate 会用编辑后的内容重新请求
-            if (targetChatId === activeChatId) renderChatbox();
-        } else {
-            // 真报错就不算"等待回复"了，走 showError 自己的重试逻辑
-            awaitingReply = false;
-            if (targetChatId === activeChatId) showError(err.message);
-        }
+    if (err.name === "AbortError") {
+    if (fullContent.trim() || fullThinking.trim()) {
+      // 有半截内容 → 留下，标注截断
+      targetChat.history.push({
+        role: "assistant", content: fullContent.trim(),
+        thinking: fullThinking.trim() || null, time: Date.now(), status: "truncated"
+      });
     }
+    // 完全没内容 → 什么都不存，走原来的 interrupted + regenerate 提示
+    } else {
+    // 真报错 → 错误作为一条 assistant 消息存进历史（Serena 式）
+    targetChat.history.push({
+      role: "assistant",
+      content: "⚠️ load failed: " + (err.message || "unknown").slice(0, 100),
+      time: Date.now(), status: "error"
+    });
+    }
+    saveAllChats();
+    awaitingReply = false;
+    if (targetChatId === activeChatId) {
+    chatHistory = targetChat.history;
+    renderChatbox();
+  }
+}
+
 
     setGenerating(false);
     currentAbortController = null;
@@ -1701,6 +1796,11 @@ async function sendMsg() {
         activeChat.name = (text || "图片").slice(0, 30) + ((text || "").length > 30 ? "..." : "");
         renderChatList();
     }
+    if (pendingImage) {
+  message.image = pendingImage;
+  message.imageSize = imageSizeLabel(pendingImage);
+}
+
 
     // 清理输入区和暂存图
     pendingImage = null;
@@ -1867,6 +1967,12 @@ document.addEventListener('click', function(e) {
         if (menu) menu.style.display = 'none';
     }
 });
+document.addEventListener("click", function (e) {
+  if (!e.target.closest(".chat-item-actions")) {
+    document.querySelectorAll(".chat-item-menu").forEach(m => m.remove());
+  }
+});
+
 
 document.querySelectorAll('.tool-item').forEach(item => {
     item.addEventListener('click', function () {
@@ -1882,6 +1988,26 @@ document.querySelectorAll('.tool-item').forEach(item => {
         if (menu) menu.style.display = 'none';
     });
 });
+// 工具菜单里加一个"图片质量"循环按钮
+(function initImageQualityTool() {
+  let menu = document.getElementById("tools-menu");
+  if (!menu) return;
+  let item = document.createElement("div");
+  item.className = "tool-item";
+  function updateText() {
+    item.innerHTML = `<span class="tool-icon">🗜️</span><span class="tool-text">image quality: ${imageQuality}</span>`;
+  }
+  updateText();
+  item.addEventListener("click", function (e) {
+    e.stopPropagation(); // 让菜单保持开着，方便连着调
+    let order = ["high", "medium", "low"];
+    imageQuality = order[(order.indexOf(imageQuality) + 1) % order.length];
+    localStorage.setItem("imageQuality", imageQuality);
+    updateText();
+  });
+  menu.appendChild(item);
+})();
+
 
 // 页面加载时恢复思考开关的高亮状态
 document.querySelector('.tool-item[data-action="deep-thinking"]')
@@ -1920,17 +2046,26 @@ function renderPendingImage() {
     if (!box) return;
     if (!pendingImage) { box.innerHTML = ""; return; }
     box.innerHTML = `
-        <div class="pending-image-chip">
-            <img src="${pendingImage}" alt="pending image">
-            <span class="pending-image-remove" onclick="clearPendingImage()">✕</span>
-        </div>
-    `;
+  <div class="pending-image-chip">
+    <img src="${pendingImage}" alt="pending image">
+    <span class="pending-image-size">${imageSizeLabel(pendingImage)}</span>
+    <span class="pending-image-remove" onclick="clearPendingImage()">✕</span>
+  </div>
+`;
+
 }
 
 function clearPendingImage() {
     pendingImage = null;
     renderPendingImage();
 }
+function imageSizeLabel(dataUrl) {
+  let base64 = (dataUrl || "").split(",")[1] || "";
+  let bytes = Math.round(base64.length * 3 / 4);
+  if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  return Math.round(bytes / 1024) + " KB";
+}
+
 
 // 处理文件上传
 function handleFileUpload() {
@@ -2004,9 +2139,10 @@ function addMemoryManual() {
 }
 
 function deleteMemory(id) {
-    memories = memories.filter(m => m.id !== id);
-    saveMemories();
-    renderMemories();
+  if (!confirm("delete this memory?")) return;
+  memories = memories.filter(m => m.id !== id);
+  saveMemories();
+  renderMemories();
 }
 
 function editMemory(id) {
