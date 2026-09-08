@@ -638,6 +638,6 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 .chat-item-menu div { padding: 8px 12px; font-size: 9px; color: #ccc; cursor: pointer; white-space: nowrap; }
 .chat-item-menu div:hover { background: rgba(124,58,237,0.15); color: #c084fc; }
 .msg-error { font-size: 9px; color: #888; font-style: italic; margin-top: 3px; }
-.msg-wrapper.force-show .msg-actions { opacity: 1 !important; display: flex !important; }
+.msg-wrapper.force-show .msg-actions { opacity: 1 !important; display: flex !important; pointer-events: auto !important; }
 .msg-truncated { font-size: 8px; color: #555; font-style: italic; margin-top: 3px; }
   
