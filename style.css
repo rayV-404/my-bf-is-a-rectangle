@@ -640,4 +640,11 @@ body { font-family: 'Press Start 2P', monospace; background: #0a0a0a; background
 .msg-error { font-size: 9px; color: #888; font-style: italic; margin-top: 3px; }
 .msg-wrapper.force-show .msg-actions { opacity: 1 !important; display: flex !important; pointer-events: auto !important; }
 .msg-truncated { font-size: 8px; color: #555; font-style: italic; margin-top: 3px; }
-  
+
+.reply-actions { margin-left: 8px; opacity: 0; transition: opacity 0.15s; white-space: nowrap; }
+.freq-reply:hover .reply-actions { opacity: 1; }
+@media (hover: none) { .reply-actions { opacity: 0.35; } }
+.reply-action { cursor: pointer; font-size: 9px; transition: color 0.15s; user-select: none; }
+.reply-action:hover { color: #c084fc; }
+.freq-summon { font-size: 9px; color: #555; cursor: pointer; display: inline-block; margin-right: 12px; transition: color 0.2s; user-select: none; }
+.freq-summon:hover { color: #c084fc; }
