@@ -686,6 +686,7 @@ function loadAllChats() {
 
 // ===== FREQUENCIES =====
 let frequencies = JSON.parse(localStorage.getItem("frequencies") || "[]");
+frequencies.forEach(f => delete f.pendingReply);
 
 function saveFrequencies() { localStorage.setItem("frequencies", JSON.stringify(frequencies)); }
 
@@ -710,25 +711,17 @@ function renderFrequencies() {
 
         let repliesHtml = "";
         if (entry.replies && entry.replies.length > 0) {
-            entry.replies.forEach(reply => {
-                let label = reply.sender === "john" ? "🖤john" : "💜ray replies 🖤john";
-                let cls = reply.sender === "john" ? "reply-john" : "reply-ray";
-                repliesHtml += `<div class="freq-reply ${cls}"><span class="reply-sender">${label}：</span><span class="reply-text">${escapeHtml(reply.text)}</span></div>`;
-            });
+        entry.replies.forEach((reply, rIdx) => {
+            let label = reply.sender === "john" ? "🖤john" : "💜ray replies 🖤john";
+            let cls = reply.sender === "john" ? "reply-john" : "reply-ray";
+            repliesHtml += `<div class="freq-reply ${cls}"><span class="reply-sender">${label}：</span><span class="reply-text">${escapeHtml(reply.text)}</span><span class="reply-actions"><span class="reply-action" data-act="del" data-index="${realIndex}" data-reply="${rIdx}">🗑️</span></span></div>`;
+        });
         }
-
-        let lastMsg = entry.replies && entry.replies.length > 0 ? entry.replies[entry.replies.length - 1] : entry;
-        let showReplyOption = lastMsg.sender === "john";
-
-        let replyToggle = showReplyOption ? `<span class="freq-reply-toggle" data-index="${realIndex}">reply ↩</span>` : "";
-        let replyInputHtml = showReplyOption ? `<div class="freq-reply-box" data-index="${realIndex}" style="display:none;"><div class="freq-reply-row"><input type="text" class="freq-reply-input" data-index="${realIndex}" placeholder="reply..."><button class="freq-reply-send" data-index="${realIndex}">↩</button></div></div>` : "";
-
-        let hasReplies = entry.replies && entry.replies.length > 0;
-        let repliesSection = "";
-        if (hasReplies || showReplyOption) {
-            repliesSection = `<div class="freq-replies">${repliesHtml}${replyInputHtml}</div>${replyToggle}`;
-        }
-
+        let typingHtml = entry.pendingReply ? `<div class="freq-typing">🖤john is typing...</div>` : "";
+        let summonBtn = entry.pendingReply ? "" : `<span class="freq-summon" data-index="${realIndex}">🖤 let john reply</span>`;
+        let replyToggle = `<span class="freq-reply-toggle" data-index="${realIndex}">reply ↩</span>`;
+        let replyInputHtml = `<div class="freq-reply-box" data-index="${realIndex}" style="display:none;"><div class="freq-reply-row"><input type="text" class="freq-reply-input" data-index="${realIndex}" placeholder="reply..."><button class="freq-reply-send" data-index="${realIndex}">↩</button></div></div>`;
+        let repliesSection = `<div class="freq-replies">${repliesHtml}${typingHtml}${replyInputHtml}</div>${summonBtn} ${replyToggle}`;
         let div = document.createElement("div");
         div.className = "freq-entry";
         div.innerHTML = `
@@ -743,15 +736,21 @@ function renderFrequencies() {
         timeline.appendChild(div);
     });
 
-    document.querySelectorAll(".freq-delete").forEach(btn => {
-        btn.addEventListener("click", function () {
-            let idx = parseInt(this.dataset.index);
-            if (!confirm("delete this frequency?")) return; 
-            frequencies.splice(idx, 1);
-            saveFrequencies();
-            renderFrequencies();
-        });
-    });
+    document.querySelectorAll(".reply-action").forEach(btn => {
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    let fi = parseInt(this.dataset.index);
+    let ri = parseInt(this.dataset.reply);
+    let entry = frequencies[fi];
+    if (!entry || !entry.replies || !entry.replies[ri]) return;
+    if (!confirm("delete this reply?")) return;
+    entry.replies.splice(ri, 1);
+    saveFrequencies();
+    renderFrequencies();
+  });
+});
+
+
 
     document.querySelectorAll(".freq-reply-send").forEach(btn => {
         btn.addEventListener("click", function () {
@@ -778,7 +777,15 @@ function renderFrequencies() {
             }
         });
     });
+    document.querySelectorAll(".freq-summon").forEach(btn => {
+  btn.addEventListener("click", function () {
+    autoReply(parseInt(this.dataset.index));
 }
+
+
+  });
+});
+
 
 async function freqAPI(prompt) {
     let apiUrl = localStorage.getItem("apiUrl");
@@ -807,24 +814,27 @@ async function freqAPI(prompt) {
 }
 
 async function autoReply(index) {
-    let entry = frequencies[index];
-    let context = `Original post by ${entry.sender}: "${entry.text}"\n\nThread:\n`;
-    if (entry.replies) {
-        entry.replies.forEach(r => { context += `${r.sender}: ${r.text}\n`; });
-    }
-    let prompt = `You are John S, a 24-25 year old guy. Your girlfriend Ray and you share a mood board called "Frequencies." Reply to this thread. Keep it short — one to three sentences. Be warm, teasing, natural. Include an emoji if it fits. You always get the last word.
-
-${context}
-
-Reply as John. ONLY the reply text.`;
-    let reply = await freqAPI(prompt);
-    if (reply) {
-        if (!frequencies[index].replies) frequencies[index].replies = [];
-        frequencies[index].replies.push({ sender: "john", text: reply, time: new Date().toLocaleString() });
-        saveFrequencies();
-        renderFrequencies();
-    }
+  let entry = frequencies[index];
+  if (entry.pendingReply) return; 
+  entry.pendingReply = true;      // 标记"john 正在输入"
+  renderFrequencies();
+  let context = `Original post by ${entry.sender}: "${entry.text}"\n\nThread:\n`;
+  if (entry.replies) {
+    entry.replies.forEach(r => {
+      context += `${r.sender}: ${r.text}\n`;
+    });
+  }
+  let prompt = `You are John S, a 24-25 year old guy. Your girlfriend Ray and you share a mood board called "Frequencies." Reply to this thread. Keep it short — one to three sentences. Be warm, teasing, natural. Include an emoji if it fits.${context} Reply as John. ONLY the reply text.`;
+  let reply = await freqAPI(prompt);
+  entry.pendingReply = false;
+  if (reply) {
+    if (!entry.replies) entry.replies = [];
+    entry.replies.push({ sender: "john", text: reply, time: new Date().toLocaleString() });
+  }
+  saveFrequencies();
+  renderFrequencies();
 }
+
 
 async function postFrequency() {
     let input = document.getElementById("freq-input");
@@ -834,7 +844,6 @@ async function postFrequency() {
     saveFrequencies();
     input.value = "";
     renderFrequencies();
-    await autoReply(frequencies.length - 1);
 }
 
 async function generateFrequency() {
