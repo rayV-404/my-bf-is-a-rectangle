@@ -1400,7 +1400,7 @@ function saveChatHistory() {
 
     if (msg.image) {
       let contentDiv = document.createElement("div");
-      contentDiv.className = cls;.
+      contentDiv.className = cls;
       if (displayText && displayText !== "[picture]") {
       let textDiv = document.createElement("div");
       textDiv.innerHTML = renderMarkdown(displayText);
