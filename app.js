@@ -1744,36 +1744,38 @@ messages = messages.concat(cleanHistory);
             }
         }
     } catch (err) {
-    document.getElementById("typing")?.remove();
-    setGenerating(false);
-    currentAbortController = null;
-    let targetChat = allChats.find(c => c.id === targetChatId);
-    if (!targetChat) return;
+  document.getElementById("typing")?.remove();
+  setGenerating(false);
+  currentAbortController = null;
+  let targetChat = allChats.find(c => c.id === targetChatId);
+  if (!targetChat) return;
 
-    if (err.name === "AbortError") {
+  if (err.name === "AbortError") {
     if (fullContent.trim() || fullThinking.trim()) {
       // 有半截内容 → 留下，标注截断
       targetChat.history.push({
         role: "assistant", content: fullContent.trim(),
         thinking: fullThinking.trim() || null, time: Date.now(), status: "truncated"
       });
+      awaitingReply = false;   // 历史以 assistant 结尾，不需要"等待回复"状态
     }
-    // 完全没内容 → 什么都不存，走原来的 interrupted + regenerate 提示
-    } else {
-    // 真报错 → 错误作为一条 assistant 消息存进历史（Serena 式）
+    // 完全没内容 → 什么都不存，awaitingReply 保持 true，
+    // renderChatbox 才会画出 interrupted + regenerate
+  } else {
     targetChat.history.push({
       role: "assistant",
       content: "⚠️ load failed: " + (err.message || "unknown").slice(0, 100),
       time: Date.now(), status: "error"
     });
-    }
-    saveAllChats();
     awaitingReply = false;
-    if (targetChatId === activeChatId) {
+  }
+  saveAllChats();
+  if (targetChatId === activeChatId) {
     chatHistory = targetChat.history;
     renderChatbox();
   }
 }
+
 
 
     setGenerating(false);
