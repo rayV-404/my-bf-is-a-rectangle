@@ -306,38 +306,60 @@ document.getElementById("import-btn")?.addEventListener("click", () => {
     document.getElementById("importFile").click();
 });
 document.getElementById("importFile")?.addEventListener("change", function () {
-    let file = this.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            let data = JSON.parse(e.target.result);
-            if (!confirm("this will overwrite all current data. continue?")) { return; }
-            if (data.allChats) localStorage.setItem("allChats", JSON.stringify(data.allChats));
-            if (data.activeChatId) localStorage.setItem("activeChatId", data.activeChatId);
-            if (data.frequencies) localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
-            if (data.memories) localStorage.setItem("memories", JSON.stringify(data.memories));
-            if (data.phoneNotes) localStorage.setItem("phoneNotes", JSON.stringify(data.phoneNotes));
-            if (data.phonePurchases) localStorage.setItem("phonePurchases", JSON.stringify(data.phonePurchases));
-            if (data.apiUrl) localStorage.setItem("apiUrl", data.apiUrl);
-            if (data.apiKey) localStorage.setItem("apiKey", data.apiKey);
-            if (data.modelName) localStorage.setItem("modelName", data.modelName);
-            if (data.maxTokens) localStorage.setItem("maxTokens", data.maxTokens);
-            if (data.temperature) localStorage.setItem("temperature", data.temperature);
-            if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
-            if (data.apiPresets) localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
-            if (data.worldbooks) localStorage.setItem("worldbooks", JSON.stringify(data.worldbooks));
-            if (data.appFont) localStorage.setItem("appFont", data.appFont);
-            if (data.appFontSize) localStorage.setItem("appFontSize", data.appFontSize);
-            if (data.phoneBowser) localStorage.setItem("phoneBowser", JSON.stringify(data.phoneBowser));
-            location.reload();
-        } catch (err) {
-            alert("invalid file: " + err.message);
-        }
-    };
-    reader.readAsText(file);
-    this.value = "";
+  let file = this.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      let data = JSON.parse(e.target.result);
+
+      // —— 单窗口聊天记录（export 导出的那种）→ 追加为新对话，不动现有数据
+      if (data.history && Array.isArray(data.history)) {
+        let name = data.name || "imported chat";
+        if (!confirm('import "' + name + '" as a new chat?')) return;
+        let newChat = {
+          id: generateId(),
+          name: name,
+          history: data.history,
+          created: data.created || new Date().toISOString(),
+          instruction: data.instruction || "",
+          worldbookIds: []
+        };
+        allChats.push(newChat);
+        switchChat(newChat.id);
+        document.getElementById("settings-overlay").classList.remove("open");
+        alert("imported ✓");
+        return;
+      }
+
+      // —— 整包备份 → 原来的覆盖式导入（以下原逻辑不动）
+      if (!confirm("this will overwrite all current data. continue?")) return;
+      if (data.allChats) localStorage.setItem("allChats", JSON.stringify(data.allChats));
+      if (data.activeChatId) localStorage.setItem("activeChatId", data.activeChatId);
+      if (data.frequencies) localStorage.setItem("frequencies", JSON.stringify(data.frequencies));
+      if (data.memories) localStorage.setItem("memories", JSON.stringify(data.memories));
+      if (data.phoneNotes) localStorage.setItem("phoneNotes", JSON.stringify(data.phoneNotes));
+      if (data.phonePurchases) localStorage.setItem("phonePurchases", JSON.stringify(data.phonePurchases));
+      if (data.apiUrl) localStorage.setItem("apiUrl", data.apiUrl);
+      if (data.apiKey) localStorage.setItem("apiKey", data.apiKey);
+      if (data.modelName) localStorage.setItem("modelName", data.modelName);
+      if (data.maxTokens) localStorage.setItem("maxTokens", data.maxTokens);
+      if (data.temperature) localStorage.setItem("temperature", data.temperature);
+      if (data.sysPrompt) localStorage.setItem("sysPrompt", data.sysPrompt);
+      if (data.apiPresets) localStorage.setItem("apiPresets", JSON.stringify(data.apiPresets));
+      if (data.worldbooks) localStorage.setItem("worldbooks", JSON.stringify(data.worldbooks));
+      if (data.appFont) localStorage.setItem("appFont", data.appFont);
+      if (data.appFontSize) localStorage.setItem("appFontSize", data.appFontSize);
+      if (data.phoneBowser) localStorage.setItem("phoneBowser", JSON.stringify(data.phoneBowser));
+      location.reload();
+    } catch (err) {
+      alert("invalid file: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  this.value = "";
 });
+
 
 document.getElementById("modelSelect")?.addEventListener("change", function () {
     if (this.value) document.getElementById("modelName").value = this.value;
@@ -405,6 +427,15 @@ function formatMsgTime(ts) {
     let hh = String(d.getHours()).toString().padStart(2, "0");
     let mi = String(d.getMinutes()).toString().padStart(2, "0");
     return mm + "." + dd + " // " + hh + ":" + mi;
+}
+
+function msgTimePrefix() {
+  let d = new Date();
+  let days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let hh = String(d.getHours()).padStart(2, '0');
+  let mi = String(d.getMinutes()).padStart(2, '0');
+  return "[current time: " + days[d.getDay()] + " " + months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " " + hh + ":" + mi + "]\n";
 }
 
 function extractThinking(data) {
@@ -1361,6 +1392,7 @@ function saveChatHistory() {
   chatbox.innerHTML = "";
   chatHistory.forEach((msg, i) => {   // ← 注意：不 filter，错误消息也要画出来
     let cls = msg.role === "user" ? "msg-user" : "msg-john";
+    let displayText = (msg.rawText !== undefined) ? msg.rawText : msg.content;
     let wrapper = document.createElement("div");
     wrapper.className = "msg-wrapper";
     wrapper.setAttribute("data-index", i);
@@ -1368,11 +1400,11 @@ function saveChatHistory() {
 
     if (msg.image) {
       let contentDiv = document.createElement("div");
-      contentDiv.className = cls;
-      if (msg.content && msg.content !== "[图片]") {
-        let textDiv = document.createElement("div");
-        textDiv.innerHTML = renderMarkdown(msg.content);
-        contentDiv.appendChild(textDiv);
+      contentDiv.className = cls;.
+      if (displayText && displayText !== "[picture]") {
+      let textDiv = document.createElement("div");
+      textDiv.innerHTML = renderMarkdown(displayText);
+      contentDiv.appendChild(textDiv);
       }
       let img = document.createElement("img");
       img.src = msg.image;
@@ -1400,7 +1432,7 @@ function saveChatHistory() {
         contentDiv.classList.add("msg-error");
         contentDiv.textContent = msg.content;   // 错误走纯文本，不走 markdown
       } else {
-        contentDiv.innerHTML = renderMarkdown(msg.content);
+        contentDiv.innerHTML = renderMarkdown(displayText);
       }
       wrapper.appendChild(contentDiv);
     }
@@ -1532,7 +1564,8 @@ async function callAPI() {
     let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     let months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     let timeContext = "[Current date & time: " + days[now.getDay()] + ", " + months[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear() + ", "
-        + now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0") + "]\n\n";
+        + now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0") + "]\n"  + 
+        "Each of Ray's messages is stamped with [current time: ...] at the start — use these stamps to naturally track how much time passes between messages.\n\n";
 
     let targetChatObj = allChats.find(c => c.id === targetChatId);
     let chatInstruction = (targetChatObj && targetChatObj.instruction) || "";
@@ -1779,21 +1812,24 @@ async function sendMsg() {
     // 没字也没图就不发
     if (!text && !pendingImage) return;
 
-    let message = { role: "user", content: text || "[图片]", time: Date.now() };
-    if (pendingImage) message.image = pendingImage;
-
+    let message = {
+    role: "user",
+    content: msgTimePrefix() + (text || "[picture]"),
+    rawText: text || "",
+    time: Date.now()
+    };
+    if (pendingImage) {
+    message.image = pendingImage;
+    message.imageSize = imageSizeLabel(pendingImage);
+    }
     chatHistory.push(message);
+
 
     let activeChat = getActiveChat();
     if (activeChat && chatHistory.length === 1 && activeChat.name.startsWith("Chat ")) {
-        activeChat.name = (text || "图片").slice(0, 30) + ((text || "").length > 30 ? "..." : "");
+        activeChat.name = (text || "picture").slice(0, 30) + ((text || "").length > 30 ? "..." : "");
         renderChatList();
     }
-    if (pendingImage) {
-  message.image = pendingImage;
-  message.imageSize = imageSizeLabel(pendingImage);
-}
-
 
     // 清理输入区和暂存图
     pendingImage = null;
@@ -1823,7 +1859,8 @@ function editMessage(index) {
 
     let textarea = document.createElement("textarea");
     textarea.className = "msg-edit-textarea";
-    textarea.value = msg.content;
+    textarea.value = (msg.rawText !== undefined) ? msg.rawText : msg.content;
+
 
     let saveBtn = document.createElement("button");
     saveBtn.textContent = "save";
@@ -1841,10 +1878,17 @@ function editMessage(index) {
     textarea.focus();
 
     saveBtn.addEventListener("click", () => {
-        chatHistory[index].content = textarea.value;
-        saveChatHistory();
-        renderChatbox(true);   // 若此条正是待回复消息，interrupted 小字会自动回来
+    if (msg.role === "user" && msg.rawText !== undefined) {
+        msg.rawText = textarea.value;
+        let oldPrefix = (msg.content || "").match(/^\[current time: [^\]]+\]\n/);
+        msg.content = (oldPrefix ? oldPrefix[0] : "") + textarea.value;
+    } else {
+        msg.content = textarea.value;
+    }
+    saveChatHistory();
+    renderChatbox(true);
     });
+
     cancelBtn.addEventListener("click", () => { renderChatbox(true); });
 }
 
