@@ -780,11 +780,13 @@ function renderFrequencies() {
     document.querySelectorAll(".freq-summon").forEach(btn => {
   btn.addEventListener("click", function () {
     autoReply(parseInt(this.dataset.index));
-}
+
+      
 
 
   });
 });
+}
 
 
 async function freqAPI(prompt) {
