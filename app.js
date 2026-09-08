@@ -47,7 +47,7 @@ function applyFont() {
         .memory-entry, #freq-input, .sidebar-placeholder, .msg-interrupted {
             font-size: ${size}px !important;
             line-height: 1.7;
-        }
+        ｝
     `;
 }
 
@@ -750,7 +750,15 @@ function renderFrequencies() {
   });
 });
 
-
+document.querySelectorAll(".freq-delete").forEach(btn => {
+  btn.addEventListener("click", function () {
+    let idx = parseInt(this.dataset.index);
+    if (!confirm("delete this frequency?")) return;
+    frequencies.splice(idx, 1);
+    saveFrequencies();
+    renderFrequencies();
+  });
+});
 
     document.querySelectorAll(".freq-reply-send").forEach(btn => {
         btn.addEventListener("click", function () {
